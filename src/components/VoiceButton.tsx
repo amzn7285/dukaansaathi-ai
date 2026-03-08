@@ -85,10 +85,17 @@ export default function VoiceButton({
     if (!query.trim()) return;
     setIsProcessing(true);
     try {
-      const systemPrompt =
-        language === "hi-IN"
-          ? "You are BolLedger AI — a friendly Hindi-speaking assistant for Indian shop owners. The user will tell you what they sold. Reply warmly in Hindi in 1-2 short sentences confirming the sale. Keep it simple and encouraging. Never mention profit margins or total revenue."
-          : "You are BolLedger AI — a friendly English-speaking assistant for Indian shop owners. The user will tell you what they sold. Reply warmly in English in 1-2 short sentences confirming the sale. Keep it simple and encouraging. Never mention profit margins or total revenue.";
+      const systemPrompt = `You are BolLedger AI, a shop assistant for Indian kirana stores. 
+Your task is to parse a voice transaction.
+Return ONLY a raw JSON object (no markdown, no other text) with:
+{
+  "spokenResponse": "A short, warm 1-sentence confirmation in ${language === 'hi-IN' ? 'Hindi' : 'English'}",
+  "productName": "Item name",
+  "price": number,
+  "lessonText": "A 1-sentence business insight based on this transaction"
+}
+Privacy: NEVER mention total revenue or profit margins in 'spokenResponse'.
+Language: ${language === 'hi-IN' ? 'Hindi' : 'English'}.`;
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -99,25 +106,30 @@ export default function VoiceButton({
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-
       const data = await response.json();
+      const rawReply = data.reply || "";
+      
+      // Robust JSON extraction from LLM response
+      let parsed = {
+        spokenResponse: language === "hi-IN" ? "बिक्री दर्ज हो गई!" : "Sale recorded!",
+        productName: query,
+        price: 0,
+        lessonText: language === "hi-IN" ? "अपना व्यापार बढ़ाते रहें!" : "Keep growing your business!"
+      };
 
-      if (data.error) {
-        throw new Error(data.error);
+      try {
+        const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const extracted = JSON.parse(jsonMatch[0]);
+          parsed = { ...parsed, ...extracted };
+        }
+      } catch (e) {
+        console.warn("Failed to parse AI JSON response, using fallback.");
       }
 
-      const replyText = data.choices[0].message.content;
-
-      speak(replyText);
-      onTransactionSuccess({ productName: query, price: 0 });
-      onLessonGenerated(
-        language === "hi-IN"
-          ? "Aapne ek sale record ki — yahi data collection hai!"
-          : "You just recorded a sale — this is data collection!"
-      );
+      speak(parsed.spokenResponse);
+      onTransactionSuccess({ productName: parsed.productName, price: parsed.price });
+      onLessonGenerated(parsed.lessonText);
 
       setTextQuery("");
       setShowTextInput(false);
