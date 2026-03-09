@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -14,7 +15,7 @@ const ProcessVoiceSaleTransactionOutputSchema = z.object({
   lessonText: z.string(),
   transactionDetails: z.object({
     productName: z.string().optional(),
-    quantity: n.number().optional(),
+    quantity: z.number().optional(),
     unit: z.string().optional(),
     customerName: z.string().optional(),
     price: z.number().optional(),
@@ -23,7 +24,7 @@ const ProcessVoiceSaleTransactionOutputSchema = z.object({
 export type ProcessVoiceSaleTransactionOutput = z.infer<typeof ProcessVoiceSaleTransactionOutputSchema>;
 
 export async function processVoiceSaleTransaction(input: ProcessVoiceSaleTransactionInput): Promise<ProcessVoiceSaleTransactionOutput> {
-  const systemPrompt = `You are DukaanSaathi AI. Task: Parse voice input.
+  const systemPrompt = `You are BolVyapar AI. Task: Parse voice input.
 1. 'spokenResponse': 1-2 warm sentences confirmation.
 2. 'lessonText': 2-sentence business insight.
 3. 'transactionDetails': Extracted data.
@@ -39,7 +40,7 @@ Respond ONLY with JSON.`;
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://bolvyapar-ai.vercel.app',
-        'X-Title': 'DukaanSaathi AI'
+        'X-Title': 'BolVyapar AI'
       },
       body: JSON.stringify({
         model: 'google/gemini-2.0-flash-exp:free',

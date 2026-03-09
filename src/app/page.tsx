@@ -7,6 +7,7 @@ import Dashboard from "@/components/Dashboard";
 import FirstLaunchFlow from "@/components/FirstLaunchFlow";
 
 const PROFILE_KEY = "bolvyapar_profile";
+const LANG_KEY = "bolvyapar_lang";
 
 export default function Home() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -15,7 +16,7 @@ export default function Home() {
   const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("dukaansaathi_lang") as "hi-IN" | "en-IN";
+    const savedLang = localStorage.getItem(LANG_KEY) as "hi-IN" | "en-IN";
     if (savedLang) {
       setLanguage(savedLang);
     }
@@ -38,7 +39,7 @@ export default function Home() {
 
   const handleLanguageChange = (lang: "hi-IN" | "en-IN") => {
     setLanguage(lang);
-    localStorage.setItem("dukaansaathi_lang", lang);
+    localStorage.setItem(LANG_KEY, lang);
   };
 
   const handleProfileComplete = () => {
