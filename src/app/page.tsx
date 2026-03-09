@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import PinLock from "@/components/PinLock";
 import Dashboard from "@/components/Dashboard";
-import ProfileSetup from "@/components/ProfileSetup";
+import FirstLaunchFlow from "@/components/FirstLaunchFlow";
 
 const PROFILE_KEY = "bolvyapar_profile";
 
@@ -56,7 +56,7 @@ export default function Home() {
   }
 
   if (!hasProfile && userRole === "owner") {
-    return <ProfileSetup onComplete={handleProfileComplete} language={language} />;
+    return <FirstLaunchFlow onComplete={handleProfileComplete} language={language} />;
   }
 
   return (

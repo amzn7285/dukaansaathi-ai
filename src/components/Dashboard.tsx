@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -24,10 +25,15 @@ const STOCK_STORAGE_KEY = "bolvyapar_stock_data";
 const CREDIT_KHATA_KEY = "bolvyapar_credit_khata";
 const PROFILE_KEY = "bolvyapar_profile";
 
-const DEFAULT_STOCK = [
-  { id: 'grains', emoji: '🌾', name: 'Grains', hiName: 'अनाज', qty: 100, unit: 'kg', level: 100, maxQty: 100, lowStockLevel: 20 },
-  { id: 'dairy', emoji: '🥛', name: 'Dairy', hiName: 'डेयरी', qty: 50, unit: 'L', level: 100, maxQty: 50, lowStockLevel: 10 },
-  { id: 'essentials', emoji: '🧼', name: 'Essentials', hiName: 'ज़रूरी सामान', qty: 200, unit: 'units', level: 100, maxQty: 200, lowStockLevel: 30 },
+const BUSINESS_TYPES = [
+  { id: 'kirana', emoji: '🏪', en: "Kirana General Store", hi: "किराना जनरल स्टोर" },
+  { id: 'dhaba', emoji: '🍵', en: "Dhaba Food Stall", hi: "ढाबा फूड स्टाल" },
+  { id: 'tailor', emoji: '✂️', en: "Tailor Boutique", hi: "दर्जी बुटीक" },
+  { id: 'repair', emoji: '🔧', en: "Repair Shop", hi: "रिपेयर शॉप" },
+  { id: 'milk', emoji: '🥛', en: "Milk Delivery", hi: "दूध की डिलीवरी" },
+  { id: 'medical', emoji: '💊', en: "Medical Store", hi: "मेडिकल स्टोर" },
+  { id: 'salon', emoji: '💇', en: "Salon Beauty", hi: "सैलून ब्यूटी" },
+  { id: 'other', emoji: '📦', en: "Other Business", hi: "अन्य व्यापार" },
 ];
 
 export default function Dashboard({ role, language, onLogout }: DashboardProps) {
@@ -36,7 +42,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   const [isCustomerView, setIsCustomerView] = useState(false);
   const [sales, setSales] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
-  const [stock, setStock] = useState<any[]>(DEFAULT_STOCK);
+  const [stock, setStock] = useState<any[]>([]);
   const [creditKhata, setCreditKhata] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
@@ -135,10 +141,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
 
       if (prodName.includes(itemName) || prodName.includes(itemHiName)) {
         isMatch = true;
-      } else if (item.id === 'dairy' && (prodName.includes('milk') || prodName.includes('doodh'))) {
-        isMatch = true;
-      } else if (item.id === 'grains' && (prodName.includes('rice') || prodName.includes('chawal') || prodName.includes('atta') || prodName.includes('wheat') || prodName.includes('dal'))) {
-        isMatch = true;
       }
 
       if (isMatch) {
@@ -193,6 +195,8 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   const totalOutstanding = creditKhata.reduce((acc, curr) => acc + (curr.balance || 0), 0);
   const redItemsCount = stock.filter(item => item.qty < ((item.lowStockLevel || 10) * 0.15)).length;
 
+  const bizInfo = BUSINESS_TYPES.find(b => b.id === profile?.businessType) || BUSINESS_TYPES[0];
+
   const texts = {
     "hi-IN": { dukaan: "दुकान", stock: "स्टॉक", khata: "खाता", report: "रिपोर्ट", customer: "ग्राहक व्यू" },
     "en-IN": { dukaan: "Home", stock: "Stock", khata: "Khata", report: "Report", customer: "Customer View" }
@@ -205,12 +209,15 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   return (
     <div className="flex flex-col h-full bg-[#F8FAFC] relative overflow-hidden">
       <header className="bg-[#0D2240] px-6 py-4 flex items-center justify-between shadow-2xl z-20 shrink-0 border-b border-white/5">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col">
           <div className="text-xl font-black flex items-baseline">
             <span className="text-[#C45000]">Bol</span>
             <span className="text-[#1A6B3C]">Vyapar</span>
             <span className="text-[#FFB300] ml-1 text-[10px] font-bold">AI 🇮🇳</span>
           </div>
+          <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest flex items-center gap-1">
+            {bizInfo.emoji} {language === 'hi-IN' ? bizInfo.hi : bizInfo.en}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button 

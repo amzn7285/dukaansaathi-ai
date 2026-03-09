@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Store, User, Phone, Users, ShieldCheck, ShoppingBasket, Scissors, Wrench, Utensils, Truck } from "lucide-react";
+import { Store, User, Phone, Users, ShieldCheck, ShoppingBasket, Scissors, Wrench, Utensils, Truck, Pill, ScissorsLineDashed, Box } from "lucide-react";
 
 interface SettingsTabProps {
   language: "hi-IN" | "en-IN";
@@ -16,11 +17,14 @@ interface SettingsTabProps {
 }
 
 const BUSINESS_TYPES = [
-  { id: 'kirana', icon: <ShoppingBasket size={18} />, en: "Kirana / General Store", hi: "किराना / जनरल स्टोर" },
-  { id: 'tailor', icon: <Scissors size={18} />, en: "Tailor / Boutique", hi: "दर्जी / बुटीक" },
-  { id: 'repair', icon: <Wrench size={18} />, en: "Repair Shop", hi: "रिपेयर शॉप" },
-  { id: 'dhaba', icon: <Utensils size={18} />, en: "Dhaba / Restaurant", hi: "ढाबा / रेस्टोरेंट" },
-  { id: 'milk', icon: <Truck size={18} />, en: "Milk Delivery", hi: "दूध की डिलीवरी" },
+  { id: 'kirana', emoji: '🏪', en: "Kirana General Store", hi: "किराना जनरल स्टोर" },
+  { id: 'dhaba', emoji: '🍵', en: "Dhaba Food Stall", hi: "ढाबा फूड स्टाल" },
+  { id: 'tailor', emoji: '✂️', en: "Tailor Boutique", hi: "दर्जी बुटीक" },
+  { id: 'repair', emoji: '🔧', en: "Repair Shop", hi: "रिपेयर शॉप" },
+  { id: 'milk', emoji: '🥛', en: "Milk Delivery", hi: "दूध की डिलीवरी" },
+  { id: 'medical', emoji: '💊', en: "Medical Store", hi: "मेडिकल स्टोर" },
+  { id: 'salon', emoji: '💇', en: "Salon Beauty", hi: "सैलून ब्यूटी" },
+  { id: 'other', emoji: '📦', en: "Other Business", hi: "अन्य व्यापार" },
 ];
 
 export default function SettingsTab({ language, profile, onUpdateProfile }: SettingsTabProps) {
@@ -110,7 +114,7 @@ export default function SettingsTab({ language, profile, onUpdateProfile }: Sett
                     {BUSINESS_TYPES.map((type) => (
                       <SelectItem key={type.id} value={type.id}>
                         <div className="flex items-center gap-2">
-                          {type.icon}
+                          <span>{type.emoji}</span>
                           <span>{language === 'hi-IN' ? type.hi : type.en}</span>
                         </div>
                       </SelectItem>
