@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Eye, TrendingUp, BarChart2, Loader2 } from "lucide-react";
+import { Eye, TrendingUp, BarChart2, Loader2, Share2 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 interface DukaanTabProps {
   privateMode: boolean;
@@ -22,6 +23,12 @@ export default function DukaanTab({ privateMode, language, sales, onGenerateSumm
   const totalAmount = todaySales.reduce((acc, curr) => acc + (curr.amount || 0), 0);
   const count = todaySales.length;
 
+  const itemCounts: Record<string, number> = {};
+  todaySales.forEach(s => {
+    itemCounts[s.item] = (itemCounts[s.item] || 0) + 1;
+  });
+  const bestItem = Object.entries(itemCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "None";
+
   const texts = {
     "hi-IN": {
       todaySales: "आज की बिक्री",
@@ -29,7 +36,8 @@ export default function DukaanTab({ privateMode, language, sales, onGenerateSumm
       txns: "लेन-देन",
       tapToReveal: "कीमत देखने के लिए टैप करें",
       empty: "कोई बिक्री नहीं",
-      summary: "आज का हिसाब"
+      summary: "आज का हिसाब",
+      share: "व्हाट्सएप रिपोर्ट"
     },
     "en-IN": {
       todaySales: "Today's Sales",
@@ -37,9 +45,20 @@ export default function DukaanTab({ privateMode, language, sales, onGenerateSumm
       txns: "txns",
       tapToReveal: "Tap sale to reveal privately",
       empty: "No sales yet",
-      summary: "Today's Summary"
+      summary: "Today's Summary",
+      share: "Share Report"
     }
   }[language];
+
+  const handleShareDailySummary = () => {
+    const shopName = "BolVyapar AI Shop";
+    const message = language === 'hi-IN'
+      ? `📈 *आज का व्यापार सारांश (${format(new Date(), 'dd MMM')})*\n\n✅ कुल बिक्री: ${count} लेन-देन\n🌟 सबसे ज्यादा बिकने वाला: ${bestItem}\n💡 टिप: ${bestItem} का स्टॉक बनाए रखें।\n\n_BolVyapar AI द्वारा भेजा गया_`
+      : `📈 *Daily Business Summary (${format(new Date(), 'dd MMM')})*\n\n✅ Total Sales: ${count} transactions\n🌟 Top Seller: ${bestItem}\n💡 Tip: Keep ${bestItem} stock ready for high demand.\n\n_Sent via BolVyapar AI_`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    toast({ title: "Opening WhatsApp..." });
+  };
 
   return (
     <div className="space-y-6">
@@ -57,18 +76,24 @@ export default function DukaanTab({ privateMode, language, sales, onGenerateSumm
                 </span>
               </div>
             </div>
-            <button 
-              onClick={onGenerateSummary}
-              disabled={isGeneratingSummary || count === 0}
-              className="flex items-center gap-2 px-3 py-2 bg-[#C45000] text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
-            >
-              {isGeneratingSummary ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <BarChart2 size={14} />
-              )}
-              {texts.summary}
-            </button>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={onGenerateSummary}
+                disabled={isGeneratingSummary || count === 0}
+                className="flex items-center gap-2 px-3 py-2 bg-[#C45000] text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isGeneratingSummary ? <Loader2 size={14} className="animate-spin" /> : <BarChart2 size={14} />}
+                {texts.summary}
+              </button>
+              <button 
+                onClick={handleShareDailySummary}
+                disabled={count === 0}
+                className="flex items-center gap-2 px-3 py-2 bg-[#1A6B3C] text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Share2 size={14} />
+                {texts.share}
+              </button>
+            </div>
           </div>
           <div className="inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full">
             <div className="w-1.5 h-1.5 rounded-full bg-[#1A6B3C]" />

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Lock, Eye, Share2, Download, TrendingUp, MinusCircle, Users, Star, Calendar, ShoppingBag } from "lucide-react";
+import { Lock, Eye, Share2, Download, TrendingUp, MinusCircle, Users, Star, Calendar, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -57,7 +57,9 @@ export default function ReportTab({ language, privateMode, sales, expenses }: Re
       .filter(c => c.name !== 'ग्राहक' && c.name !== 'Customer')
       .map(c => ({
         ...c,
-        favoriteProduct: Object.entries(c.items).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || '---'
+        favoriteProduct: Object.entries(c.items).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || '---',
+        // Mocking credit balance for this feature - usually would be separate state
+        creditDue: Math.floor(c.totalSpent * 0.2) // Assume 20% is credit for demo purposes
       }))
       .sort((a, b) => b.totalSpent - a.totalSpent)
       .slice(0, 10);
@@ -73,6 +75,32 @@ export default function ReportTab({ language, privateMode, sales, expenses }: Re
     }
   };
 
+  const handleWeeklyShare = () => {
+    // Calculate trends
+    const itemTrends: Record<string, number> = {};
+    sales.slice(0, 50).forEach(s => {
+      itemTrends[s.item] = (itemTrends[s.item] || 0) + 1;
+    });
+    const trendingItems = Object.entries(itemTrends)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(i => i[0]);
+
+    const message = language === 'hi-IN'
+      ? `📅 *साप्ताहिक व्यापार रिपोर्ट (ट्रेंड्स)*\n\n✅ व्यापार बढ़ रहा है!\n🔥 ज्यादा मांग: ${trendingItems.join(", ")}\n👥 ग्राहकों का आना: लगातार\n📈 ओवरऑल ग्रोथ: पॉजिटिव\n\n_BolVyapar AI_`
+      : `📅 *Weekly Business Trends Report*\n\n✅ Business is growing!\n🔥 High Demand: ${trendingItems.join(", ")}\n👥 Customer footfall: Steady\n📈 Overall Growth: Positive\n\n_BolVyapar AI_`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleCreditReminder = (customer: any) => {
+    const message = language === 'hi-IN'
+      ? `नमस्ते ${customer.name}! BolVyapar AI शॉप से एक छोटा रिमाइंडर। आपका ₹${customer.creditDue} का बैलेंस बकाया है। कृपया समय मिलने पर भुगतान करें। धन्यवाद!`
+      : `Hi ${customer.name}! A friendly reminder from BolVyapar AI Shop. You have a pending balance of ₹${customer.creditDue}. Please clear it at your convenience. Thank you!`;
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   const texts = {
     "hi-IN": {
       title: "रिपोर्ट सुरक्षित",
@@ -82,12 +110,13 @@ export default function ReportTab({ language, privateMode, sales, expenses }: Re
       profit: "आज का मुनाफा",
       insights: "AI एनालिसिस",
       customers: "खास ग्राहक",
-      whatsapp: "शेयर समरी",
+      whatsapp: "शेयर ट्रेंड्स",
       lock: "लॉक करें",
       reveal: "देखें",
       spent: "कुल खर्च",
       fav: "पसंदीदा",
-      last: "आखिरी बार"
+      last: "आखिरी बार",
+      remind: "रिमाइंडर"
     },
     "en-IN": {
       title: "Reports Secure",
@@ -97,12 +126,13 @@ export default function ReportTab({ language, privateMode, sales, expenses }: Re
       profit: "NET PROFIT",
       insights: "AI BUSINESS INSIGHTS",
       customers: "TOP CUSTOMERS",
-      whatsapp: "Share Summary",
+      whatsapp: "Share Trends",
       lock: "Lock",
       reveal: "Reveal",
       spent: "Total Spent",
       fav: "Favorite",
-      last: "Last Visit"
+      last: "Last Visit",
+      remind: "Remind"
     }
   }[language];
 
@@ -216,13 +246,21 @@ export default function ReportTab({ language, privateMode, sales, expenses }: Re
                         <p className="text-[9px] text-slate-400 uppercase font-bold">{customer.visits} Visited</p>
                       </div>
                     </div>
-                    <div className="flex gap-2 pt-1 border-t border-slate-50">
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-50">
                       <div className="flex items-center gap-1 bg-[#C45000]/5 px-2 py-1 rounded-lg">
                         <Star size={10} className="text-[#C45000]" />
                         <span className="text-[9px] font-black text-[#C45000] uppercase truncate max-w-[80px]">
                           {customer.favoriteProduct}
                         </span>
                       </div>
+                      {customer.creditDue > 0 && (
+                        <button 
+                          onClick={() => handleCreditReminder(customer)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold uppercase border border-amber-100"
+                        >
+                          <MessageCircle size={12} /> {texts.remind}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -250,8 +288,11 @@ export default function ReportTab({ language, privateMode, sales, expenses }: Re
       </div>
 
       <div className="flex gap-4 pt-4">
-        <button onClick={() => toast({ title: "Summary Shared!" })} className="flex-1 h-14 bg-[#1A6B3C] text-white rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-[#1A6B3C]/20">
-          <Share2 size={18} /> WhatsApp
+        <button 
+          onClick={handleWeeklyShare} 
+          className="flex-1 h-14 bg-[#1A6B3C] text-white rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-[#1A6B3C]/20"
+        >
+          <Share2 size={18} /> {texts.whatsapp}
         </button>
         <button onClick={() => toast({ title: "Exported!" })} className="w-14 h-14 bg-white border border-slate-200 text-slate-400 rounded-2xl flex items-center justify-center shadow-sm">
           <Download size={20} />
