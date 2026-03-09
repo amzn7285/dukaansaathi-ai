@@ -1,20 +1,8 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import { Mic, Loader2, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface VoiceButtonProps {
-  role: "owner" | "helper";
-  language: "hi-IN" | "en-IN";
-  privateMode: boolean;
-  onTransactionSuccess: (details: any) => void;
-  businessType?: string;
-  stock?: any[];
-  khata?: any[];
-  compact?: boolean;
-}
 
 const MAPPINGS_KEY = "bolvyaapar_product_mappings";
 
@@ -78,7 +66,7 @@ export default function VoiceButton({ role, language, privateMode, onTransaction
     try {
       const stockCategories = stock.map(s => s.name).join(", ");
       const khataNames = khata.map(c => c.name).join(", ");
-      const systemPrompt = `Parse voice. 
+      const systemPrompt = `You are BolVyaapar AI. Parse voice. 
 Intents: 
 1. sale (Retail sale)
 2. expense (Business kharcha)
@@ -86,11 +74,9 @@ Intents:
 4. payment (Udhaar vapas lena)
 5. job_create (Service job)
 6. job_complete (Mark job ready)
-7. reminder (Set reminder for owner/customer. e.g. 'Ramesh ko kal yaad dilao' or 'Subah doodh mangana hai')
+7. reminder (Set reminder for owner/customer)
 
 Context: ${businessType}. Stock: ${stockCategories}. Khata: ${khataNames}. 
-For reminder: extract customerName (if any), message, date (ISO string for the reminder date).
-
 Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...", "customerName": "...", "price": 0, "quantity": 0, "unit": "...", "description": "...", "advance": 0, "message": "...", "date": "..."}`;
 
       const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userMessage: query, systemPrompt }) });
@@ -169,7 +155,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
     
     return (
       <div className="fixed inset-0 z-[150] bg-black/50 backdrop-blur-sm flex items-center justify-center p-6">
-        <div className="bg-white w-full max-w-sm rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95">
+        <div className="bg-white w-full max-sm rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95">
           <div className="p-8 space-y-8">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="h-28 w-28 rounded-full bg-slate-50 flex items-center justify-center text-6xl">

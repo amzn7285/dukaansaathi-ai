@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -41,7 +40,7 @@ export default function FirstLaunchFlow({ onComplete, language }: FirstLaunchFlo
   });
 
   const recognitionRef = useRef<any>(null);
-  const transcriptRef = useRef(""); // Use a ref to capture the latest transcript in onend
+  const transcriptRef = useRef(""); 
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -66,7 +65,6 @@ export default function FirstLaunchFlow({ onComplete, language }: FirstLaunchFlo
 
         recognition.onend = () => {
           setIsListening(false);
-          // Automatically save when speaking ends
           if (transcriptRef.current) {
             handleVoiceAction(transcriptRef.current);
           }
@@ -84,7 +82,7 @@ export default function FirstLaunchFlow({ onComplete, language }: FirstLaunchFlo
         setMicError(true);
       }
     }
-  }, [language, step]); // Re-bind when step changes to ensure correct system prompt context
+  }, [language, step]);
 
   const speak = (text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -160,7 +158,7 @@ export default function FirstLaunchFlow({ onComplete, language }: FirstLaunchFlo
       ownerName: "Owner",
       businessType: formData.businessType || 'kirana'
     };
-    localStorage.setItem("bolvyapar_profile", JSON.stringify(finalProfile));
+    localStorage.setItem("bolvyaapar_profile", JSON.stringify(finalProfile));
     
     if (formData.firstStock) {
       const stockItem = {
@@ -171,7 +169,7 @@ export default function FirstLaunchFlow({ onComplete, language }: FirstLaunchFlo
         lowStockLevel: Math.max(1, Math.floor(formData.firstStock.qty * 0.1)),
         price: formData.firstStock.price || 0
       };
-      localStorage.setItem("bolvyapar_stock_data", JSON.stringify([stockItem]));
+      localStorage.setItem("bolvyaapar_stock_data", JSON.stringify([stockItem]));
     }
 
     if (formData.firstSale) {
@@ -184,7 +182,7 @@ export default function FirstLaunchFlow({ onComplete, language }: FirstLaunchFlo
         amount: formData.firstSale.price,
         qty: `${formData.firstSale.quantity || 1} units`
       };
-      localStorage.setItem("bolvyapar_sales_history", JSON.stringify([saleItem]));
+      localStorage.setItem("bolvyaapar_sales_history", JSON.stringify([saleItem]));
     }
 
     onComplete();
@@ -331,7 +329,6 @@ export default function FirstLaunchFlow({ onComplete, language }: FirstLaunchFlo
                 )}
               </div>
 
-              {/* Persistent Saved Item Card */}
               {currentSavedItem && (
                 <div className="w-full bg-white/5 border border-emerald-500/30 p-6 rounded-[32px] flex items-center justify-between animate-in zoom-in-95">
                   <div className="flex items-center gap-4">
