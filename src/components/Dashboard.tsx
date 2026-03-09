@@ -134,20 +134,18 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
     const soldQty = Number(details.quantity) || 0;
     const prodName = (details.productName || "").toLowerCase();
 
-    // Matching logic using either learned category or fuzzy matching from StockTab
     const updatedStock = stock.map(item => {
       let isMatch = false;
       const itemName = item.name.toLowerCase();
       const itemHiName = (item.hiName || "").toLowerCase();
 
-      // Check for direct match or fuzzy match (learned mapping is handled in VoiceButton)
       if (prodName.includes(itemName) || prodName.includes(itemHiName) || details.matchedCategory === item.name) {
         isMatch = true;
       }
 
       if (isMatch) {
         const newQty = Math.max(0, item.qty - soldQty);
-        const maxQty = item.maxQty || item.qty || 100;
+        const maxQty = item.maxQty || 100;
         const newLevel = (newQty / maxQty) * 100;
         return { ...item, qty: newQty, level: newLevel };
       }
@@ -195,7 +193,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   };
 
   const totalOutstanding = creditKhata.reduce((acc, curr) => acc + (curr.balance || 0), 0);
-  const redItemsCount = stock.filter(item => item.qty < ((item.lowStockLevel || 10) * 0.15)).length;
+  const redItemsCount = stock.filter(item => item.level < 15).length;
 
   const bizInfo = BUSINESS_TYPES.find(b => b.id === profile?.businessType) || BUSINESS_TYPES[0];
 
@@ -251,7 +249,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
             />
           </TabsContent>
           <TabsContent value="stock" className="m-0 p-4">
-            <StockTab language={language} stock={stock} onAddCategory={(cat) => setStock([...stock, {...cat, id: Date.now(), level: 100, maxQty: cat.qty}])} sales={sales} profile={profile} />
+            <StockTab language={language} stock={stock} onAddCategory={(cat) => setStock([...stock, cat])} sales={sales} profile={profile} />
           </TabsContent>
           <TabsContent value="khata" className="m-0 p-4">
             <CreditKhataTab language={language} customers={creditKhata} onUpdateCustomers={handleUpdateKhata} profile={profile} />

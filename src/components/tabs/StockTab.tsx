@@ -1,14 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Volume2, Plus, AlertTriangle, MessageCircle } from "lucide-react";
+import { Volume2, Plus, AlertTriangle, Mic, Loader2, CheckCircle2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -22,190 +19,242 @@ interface StockTabProps {
 
 export default function StockTab({ language, stock, onAddCategory, sales, profile }: StockTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    hiName: "",
-    emoji: "📦",
-    qty: "",
-    unit: "units",
-    costPrice: "",
-    sellingPrice: "",
-    lowStockLevel: ""
-  });
+  const [isListening, setIsListening] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [tempResult, setTempResult] = useState<any>(null);
 
-  const speakStock = (item: any) => {
-    const name = language === 'hi-IN' ? item.hiName : item.name;
-    const text = `${name} stock is ${item.qty} ${item.unit}.`;
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = language;
+        recognition.onresult = (e: any) => {
+          const query = e.results[0][0].transcript;
+          handleVoiceAdd(query);
+        };
+        recognition.onend = () => setIsListening(false);
+        recognitionRef.current = recognition;
+      }
+    }
+  }, [language]);
+
+  const speak = (text: string) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = language;
     window.speechSynthesis.speak(utterance);
   };
 
-  const handleOrderStock = (item: any) => {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const relevantSales = sales.filter(s => {
-      const saleDate = new Date(s.timestamp);
-      const prodName = (s.item || "").toLowerCase();
-      const itemName = item.name.toLowerCase();
-      const itemHiName = (item.hiName || "").toLowerCase();
-      const isMatch = prodName.includes(itemName) || prodName.includes(itemHiName);
-      return saleDate >= sevenDaysAgo && isMatch;
-    });
+  const handleVoiceAdd = async (query: string) => {
+    setIsProcessing(true);
+    try {
+      const systemPrompt = `Parse voice to create a new stock category. 
+      Return ONLY JSON: {"name": "item name", "hiName": "Hindi name", "qty": number, "unit": "kg/L/units", "price": number, "emoji": "emoji"}`;
+      
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userMessage: query, systemPrompt }),
+      });
 
-    const weeklyTotal = relevantSales.reduce((acc, curr) => {
-      const qty = parseFloat(curr.qty) || 0;
-      return acc + qty;
-    }, 0);
-
-    const suggestedQty = Math.max(item.maxQty || 100, Math.ceil(weeklyTotal * 1.5));
-    
-    const shopName = profile?.shopName || "BolVyapar AI Shop";
-    const supplierPhone = profile?.supplierPhone || "";
-    const message = language === 'hi-IN' 
-      ? `नमस्ते! मुझे ${item.hiName || item.name} का स्टॉक चाहिए।\n📦 मात्रा: ${suggestedQty} ${item.unit}\n🏪 दुकान: ${shopName}`
-      : `Hi! I need to restock ${item.name}.\n📦 Suggested Quantity: ${suggestedQty} ${item.unit}\n🏪 Shop: ${shopName}`;
-
-    window.open(`https://wa.me/${supplierPhone}?text=${encodeURIComponent(message)}`, '_blank');
+      const data = await response.json();
+      const jsonMatch = data.reply?.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setTempResult(parsed);
+        speak(language === 'hi-IN' ? "क्या मैं इसे जोड़ दूँ?" : "Should I add this?");
+      }
+    } catch (e) {
+      console.error(e);
+      speak(language === 'hi-IN' ? "समझ नहीं आया, फिर से बोलें" : "Didn't catch that, try again");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const confirmAdd = () => {
     onAddCategory({
-      ...formData,
-      qty: Number(formData.qty),
-      costPrice: Number(formData.costPrice),
-      sellingPrice: Number(formData.sellingPrice),
-      lowStockLevel: Number(formData.lowStockLevel),
-      hiName: formData.hiName || formData.name
+      ...tempResult,
+      id: Date.now(),
+      level: 100,
+      maxQty: tempResult.qty,
+      lowStockLevel: tempResult.qty * 0.2
     });
+    setTempResult(null);
     setIsDialogOpen(false);
-    setFormData({
-      name: "", hiName: "", emoji: "📦", qty: "", unit: "units",
-      costPrice: "", sellingPrice: "", lowStockLevel: ""
-    });
+    speak(language === 'hi-IN' ? "जोड़ दिया गया है" : "Added successfully");
+  };
+
+  const speakStockStatus = (item: any) => {
+    const name = language === 'hi-IN' ? item.hiName : item.name;
+    const qty = item.qty;
+    const unit = item.unit;
+    const level = item.level;
+
+    let mood = "";
+    if (level < 15) {
+      mood = language === 'hi-IN' ? "— जल्दी ऑर्डर करो!" : "— Order soon!";
+    } else if (level < 30) {
+      mood = language === 'hi-IN' ? "— ध्यान रखो।" : "— Keep an eye.";
+    } else {
+      mood = language === 'hi-IN' ? "— ठीक है।" : "— Everything is fine.";
+    }
+
+    const text = language === 'hi-IN' 
+      ? `${name} ${qty} ${unit} बचा है ${mood}`
+      : `${name} ${qty} ${unit} left ${mood}`;
+    
+    speak(text);
   };
 
   const texts = {
     "hi-IN": {
       title: "इन्वेंट्री स्टेटस",
-      addBtn: "नई कैटेगरी",
-      critical: "खत्म होने वाला है",
-      healthy: "पर्याप्त है",
-      formTitle: "नई स्टॉक कैटेगरी",
-      save: "सुरक्षित करें",
-      order: "स्टॉक मंगाएं"
+      addBtn: "नया सामान",
+      voiceInstr: "सामान का नाम, मात्रा और कीमत बोलें",
+      example: "जैसे: '10 किलो चावल 800 रुपये'",
+      confirm: "हाँ, जोड़ो",
+      cancel: "हटाओ",
+      processing: "चेक कर रहा हूँ...",
+      critical: "खत्म होने वाला",
+      healthy: "ज्यादा है"
     },
     "en-IN": {
-      title: "Inventory Status",
-      addBtn: "Add Category",
+      title: "Stock Status",
+      addBtn: "Add Item",
+      voiceInstr: "Speak item name, quantity and price",
+      example: "e.g. '10kg Rice for 800 rupees'",
+      confirm: "Yes, Add",
+      cancel: "Cancel",
+      processing: "Processing...",
       critical: "Critical",
-      healthy: "Healthy",
-      formTitle: "Add New Category",
-      save: "Save Category",
-      order: "Order Stock"
+      healthy: "Healthy"
     }
   }[language];
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4 px-1">
-        <h3 className="text-slate-900 text-lg font-black tracking-tight">{texts.title}</h3>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center px-1">
+        <h3 className="text-2xl font-black text-slate-900 tracking-tight">{texts.title}</h3>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setTempResult(null);
+        }}>
           <DialogTrigger asChild>
-            <button className="h-10 px-4 bg-[#C45000] text-white rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#C45000]/20">
-              <Plus size={14} /> {texts.addBtn}
+            <button className="h-14 px-6 bg-[#C45000] text-white rounded-[24px] flex items-center gap-3 text-sm font-black uppercase tracking-widest shadow-xl shadow-[#C45000]/20 active:scale-95 transition-all">
+              <Plus size={20} /> {texts.addBtn}
             </button>
           </DialogTrigger>
-          <DialogContent className="max-w-[90vw] rounded-[32px] p-6 border-none shadow-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-black text-[#0D2240] mb-4">{texts.formTitle}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400">Name (English)</Label>
-                  <Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="rounded-xl bg-slate-50" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400">नाम (हिंदी)</Label>
-                  <Input value={formData.hiName} onChange={e => setFormData({...formData, hiName: e.target.value})} className="rounded-xl bg-slate-50" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400">Emoji</Label>
-                  <Select onValueChange={val => setFormData({...formData, emoji: val})}>
-                    <SelectTrigger className="rounded-xl bg-slate-50"><SelectValue placeholder="📦" /></SelectTrigger>
-                    <SelectContent>
-                      {["📦", "🧴", "🍬", "🍫", "🧂", "🍳", "🥖", "🍖", "🥦", "🍎"].map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400">Unit</Label>
-                  <Select onValueChange={val => setFormData({...formData, unit: val})}>
-                    <SelectTrigger className="rounded-xl bg-slate-50"><SelectValue placeholder="units" /></SelectTrigger>
-                    <SelectContent>
-                      {["kg", "L", "units", "pkts", "dozen"].map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400">Opening Stock</Label>
-                  <Input required type="number" value={formData.qty} onChange={e => setFormData({...formData, qty: e.target.value})} className="rounded-xl bg-slate-50" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400">Low Alert</Label>
-                  <Input required type="number" value={formData.lowStockLevel} onChange={e => setFormData({...formData, lowStockLevel: e.target.value})} className="rounded-xl bg-slate-50" />
-                </div>
-              </div>
-              <Button type="submit" className="w-full h-14 rounded-2xl bg-[#C45000] text-white font-bold">{texts.save}</Button>
-            </form>
+          <DialogContent className="max-w-[95vw] rounded-[40px] p-8 border-none shadow-2xl bg-[#0D2240] text-white">
+            <div className="flex flex-col items-center text-center space-y-8">
+              {!tempResult ? (
+                <>
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-black">{texts.addBtn}</h2>
+                    <p className="text-white/60">{texts.voiceInstr}</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setIsListening(true);
+                      recognitionRef.current?.start();
+                    }}
+                    disabled={isProcessing}
+                    className={cn(
+                      "h-32 w-32 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90",
+                      isListening ? "bg-red-500 animate-pulse" : "bg-[#C45000]",
+                      isProcessing && "bg-slate-600"
+                    )}
+                  >
+                    {isProcessing ? <Loader2 className="animate-spin" size={48} /> : <Mic size={48} />}
+                  </button>
+                  <p className="text-white/40 text-sm italic">{texts.example}</p>
+                </>
+              ) : (
+                <>
+                  <div className="text-7xl mb-2">{tempResult.emoji}</div>
+                  <div className="space-y-2">
+                    <h2 className="text-4xl font-black">{language === 'hi-IN' ? tempResult.hiName : tempResult.name}</h2>
+                    <p className="text-2xl font-bold text-[#FFB300]">{tempResult.qty} {tempResult.unit} • ₹{tempResult.price}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 w-full pt-4">
+                    <Button onClick={() => setTempResult(null)} variant="outline" className="h-20 rounded-3xl border-white/10 bg-white/5 text-white text-xl font-black">
+                      <X size={24} className="mr-2" /> {texts.cancel}
+                    </Button>
+                    <Button onClick={confirmAdd} className="h-20 rounded-3xl bg-emerald-500 text-white text-xl font-black hover:bg-emerald-600 shadow-xl shadow-emerald-500/20">
+                      <CheckCircle2 size={24} className="mr-2" /> {texts.confirm}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-6">
         {stock.map((item) => {
-          const warning = item.lowStockLevel || 10;
-          const isRed = item.qty < (warning * 0.15);
-          const isYellow = !isRed && item.qty < (warning * 0.30);
-          const isGreen = !isRed && !isYellow && item.qty > (warning * 0.50);
+          const isRed = item.level < 15;
+          const isYellow = !isRed && item.level < 30;
+          const isGreen = item.level >= 50;
 
           return (
-            <Card key={item.id} className={cn("bg-white rounded-[24px] overflow-hidden shadow-sm transition-all border-2", isRed ? "border-red-500" : isYellow ? "border-amber-400" : isGreen ? "border-emerald-500" : "border-slate-100")}>
-              <CardContent className="p-5">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex gap-4 items-center">
-                    <span className="text-4xl relative">
-                      {item.emoji}
-                      {isRed && <div className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-0.5 animate-flash ring-1 ring-white"><AlertTriangle size={12} fill="currentColor" /></div>}
-                    </span>
-                    <div>
-                      <h3 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest">{language === 'hi-IN' ? item.hiName : item.name}</h3>
-                      <p className={cn("text-[22px] font-black", isRed ? "text-red-600" : isYellow ? "text-amber-500" : isGreen ? "text-emerald-600" : "text-slate-900")}>
-                        {item.qty}<span className="text-xs ml-1 font-bold text-slate-400 uppercase">{item.unit}</span>
-                      </p>
+            <Card key={item.id} className={cn(
+              "rounded-[40px] overflow-hidden shadow-lg transition-all border-4 bg-white",
+              isRed ? "border-red-500" : isYellow ? "border-amber-400" : isGreen ? "border-emerald-500" : "border-slate-100"
+            )}>
+              <CardContent className="p-8">
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="text-7xl relative">
+                    {item.emoji}
+                    {isRed && (
+                      <div className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1.5 animate-flash ring-4 ring-white shadow-xl">
+                        <AlertTriangle size={20} fill="currentColor" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
+                      {language === 'hi-IN' ? item.hiName : item.name}
+                    </h3>
+                    <div className={cn(
+                      "text-6xl font-black flex items-baseline justify-center gap-2",
+                      isRed ? "text-red-600" : isYellow ? "text-amber-500" : isGreen ? "text-emerald-600" : "text-slate-900"
+                    )}>
+                      {item.qty}
+                      <span className="text-xl font-bold text-slate-400 uppercase">{item.unit}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => speakStock(item)} className={cn("h-12 w-12 flex items-center justify-center rounded-2xl", isRed ? "bg-red-50 text-red-600" : "bg-slate-50 text-[#1A6B3C]")}><Volume2 size={20} /></button>
-                    {isRed && <button onClick={() => handleOrderStock(item)} className="h-12 px-4 bg-[#1A6B3C] text-white rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"><MessageCircle size={16} /> {texts.order}</button>}
+
+                  <div className="w-full space-y-4">
+                    <Progress 
+                      value={item.level} 
+                      className={cn(
+                        "h-4 rounded-full bg-slate-100",
+                        isRed ? "[&>div]:bg-red-500" : isYellow ? "[&>div]:bg-amber-400" : isGreen ? "[&>div]:bg-emerald-500" : ""
+                      )} 
+                    />
+                    <div className="flex justify-between text-xs font-black uppercase tracking-widest px-1">
+                      <span className={isRed ? "text-red-600" : "text-slate-400"}>{texts.critical}</span>
+                      <span className={isGreen ? "text-emerald-600" : "text-slate-400"}>{texts.healthy}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Progress value={item.level} className={cn("h-2 rounded-full", isRed ? "[&>div]:bg-red-500" : isYellow ? "[&>div]:bg-amber-400" : isGreen ? "[&>div]:bg-emerald-500" : "")} />
-                  <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                    <span className={isRed ? "text-red-600" : isYellow ? "text-amber-500" : ""}>{texts.critical}</span>
-                    <span className={isGreen ? "text-emerald-600" : ""}>{texts.healthy}</span>
-                  </div>
+
+                  <button 
+                    onClick={() => speakStockStatus(item)}
+                    className={cn(
+                      "w-full h-20 rounded-[30px] flex items-center justify-center gap-4 transition-all active:scale-95 shadow-lg",
+                      isRed ? "bg-red-50 text-red-600 border-2 border-red-100" : "bg-slate-50 text-slate-600 border-2 border-slate-100"
+                    )}
+                  >
+                    <Volume2 size={32} />
+                    <span className="text-xl font-black uppercase tracking-widest">{language === 'hi-IN' ? 'सुनो' : 'Listen'}</span>
+                  </button>
                 </div>
               </CardContent>
             </Card>
