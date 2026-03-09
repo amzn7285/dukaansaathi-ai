@@ -43,13 +43,13 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
 
   const texts = {
     "hi-IN": {
-      tagline: "बोलिये… बाकी सब BolLedger संभालेगा",
+      tagline: "बोलिये… बाकी सब BolVyapar संभालेगा",
       select: "भाषा चुनें",
       enter: "PIN दर्ज करें",
       error: "गलत PIN",
     },
     "en-IN": {
-      tagline: "Boliye… Baaki Sab BolLedger Sambhalega",
+      tagline: "Boliye… Baaki Sab BolVyapar Sambhalega",
       select: "Select Language",
       enter: "Enter PIN",
       error: "Wrong PIN",
@@ -67,8 +67,8 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
           </div>
           <div className="text-3xl font-black tracking-tight flex items-baseline">
             <span className="text-[#C45000]">Bol</span>
-            <span className="text-[#1A6B3C]">Ledger</span>
-            <span className="text-white ml-1 text-base">AI 🇮🇳</span>
+            <span className="text-[#1A6B3C]">Vyapar</span>
+            <span className="text-[#FFB300] ml-1 text-base font-bold">AI 🇮🇳</span>
           </div>
         </div>
         <p className="text-white/70 text-sm font-medium italic mb-12 max-w-[200px] leading-relaxed">

@@ -17,7 +17,7 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-const SNOOZE_KEY = "bolledger_lesson_snooze";
+const SNOOZE_KEY = "bolvyapar_lesson_snooze";
 const SNOOZE_DURATION = 3600000;
 
 export default function Dashboard({ role, language, onLogout }: DashboardProps) {
@@ -73,8 +73,8 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
         <div className="flex items-center gap-2">
           <div className="text-xl font-black flex items-baseline">
             <span className="text-[#C45000]">Bol</span>
-            <span className="text-[#1A6B3C]">Ledger</span>
-            <span className="text-white ml-1 text-[10px] opacity-60">AI 🇮🇳</span>
+            <span className="text-[#1A6B3C]">Vyapar</span>
+            <span className="text-[#FFB300] ml-1 text-[10px] font-bold">AI 🇮🇳</span>
           </div>
         </div>
         <div className="flex items-center gap-3">

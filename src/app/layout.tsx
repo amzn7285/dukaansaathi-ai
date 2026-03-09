@@ -2,8 +2,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'BolLedger AI (बोल लेजर)',
-  description: 'Boliye… Baaki Sab BolLedger Sambhalega. Your voice-first AI business partner.',
+  title: 'BolVyapar AI (बोल व्यापार)',
+  description: 'Boliye… Baaki Sab BolVyapar Sambhalega. Your voice-first AI business partner.',
 };
 
 export default function RootLayout({

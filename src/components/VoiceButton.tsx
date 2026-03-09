@@ -85,7 +85,7 @@ export default function VoiceButton({
     if (!query.trim()) return;
     setIsProcessing(true);
     try {
-      const systemPrompt = `You are BolLedger AI, a shop assistant for Indian kirana stores. 
+      const systemPrompt = `You are BolVyapar AI, a shop assistant for Indian kirana stores. 
 Your task is to parse a voice transaction.
 Return ONLY a raw JSON object (no markdown, no other text) with:
 {
