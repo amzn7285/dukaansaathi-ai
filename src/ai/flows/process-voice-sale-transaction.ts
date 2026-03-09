@@ -38,7 +38,7 @@ Respond ONLY with JSON.`;
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://bolvyapar-ai.vercel.app',
+        'HTTP-Referer': 'https://bolvyaapar-ai.vercel.app',
         'X-Title': 'BolVyaapar AI'
       },
       body: JSON.stringify({

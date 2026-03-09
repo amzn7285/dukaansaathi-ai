@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://bolvyapar-ai.vercel.app',
+        'HTTP-Referer': 'https://bolvyaapar-ai.vercel.app',
         'X-Title': 'BolVyaapar AI'
       },
       body: JSON.stringify({
