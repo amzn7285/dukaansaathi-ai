@@ -10,7 +10,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 24 100% 38%; /* Saffron #C45000 */
+    --primary: 199 89% 60%; /* Light Blue #38BDF8 */
     --primary-foreground: 210 40% 98%;
     --secondary: 144 61% 26%; /* Green #1A6B3C */
     --secondary-foreground: 210 40% 98%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 24 100% 38%;
+    --ring: 199 89% 60%;
     --radius: 1rem;
   }
 }

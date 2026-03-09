@@ -217,10 +217,10 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
 
   return (
     <div className="flex flex-col items-center">
-      <button onClick={startListening} disabled={isProcessing} className={cn("h-24 w-24 rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(196,80,0,0.4)] transition-all active:scale-90 border-4 border-white", isListening ? "bg-red-500 animate-pulse" : "bg-[#C45000]", isProcessing && "bg-slate-400")}>
+      <button onClick={startListening} disabled={isProcessing} className={cn("h-24 w-24 rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(56,189,248,0.4)] transition-all active:scale-90 border-4 border-white", isListening ? "bg-red-500 animate-pulse" : "bg-[#38BDF8]", isProcessing && "bg-slate-400")}>
         {isProcessing ? <Loader2 className="text-white animate-spin" size={40} /> : <Mic className="text-white" size={40} />}
       </button>
-      <p className="mt-2 text-[11px] font-black text-[#C45000] uppercase tracking-tighter">
+      <p className="mt-2 text-[11px] font-black text-[#38BDF8] uppercase tracking-tighter">
         {isListening ? "Listening..." : "Boliye"}
       </p>
     </div>

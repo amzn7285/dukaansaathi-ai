@@ -298,8 +298,8 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   const bizInfo = BUSINESS_TYPES.find(b => b.id === profile?.businessType) || BUSINESS_TYPES[0];
 
   const texts = {
-    "hi-IN": { dukaan: "दुकान", stock: "स्टॉक", khata: "खाता", report: "रिपोर्ट", activity: bizInfo.isService ? "ऑर्डर" : "हिसाब", share: "WhatsApp पर भेजें", tagline: "बोलकर चलाओ AI से कारोबार" },
-    "en-IN": { dukaan: "Dukaan", stock: "Stock", khata: "Khata", report: "Report", activity: bizInfo.isService ? "Orders" : "History", share: "Share on WhatsApp", tagline: "Bolkar Chalao AI Se Karobaar" }
+    "hi-IN": { dukaan: "दुकान", stock: "स्टॉक", khata: "खाता", report: "रिपोर्ट", activity: bizInfo.isService ? "ऑर्डर" : "हिसाब", share: "WhatsApp पर भेजें", tagline: "बोलकर चलाओ AI से कारोबार — बोलकर चलाओ AI से कारोबार" },
+    "en-IN": { dukaan: "Dukaan", stock: "Stock", khata: "Khata", report: "Report", activity: bizInfo.isService ? "Orders" : "History", share: "Share on WhatsApp", tagline: "Bolkar Chalao AI Se Karobaar — बोलकर चलाओ AI से कारोबार" }
   }[language];
 
   return (
@@ -307,7 +307,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       <ConnectivityBanner language={language} />
       
       {isHelper && (
-        <div className="bg-[#C45000] text-white px-4 py-2 flex items-center justify-center gap-2 z-[100] shadow-md">
+        <div className="bg-[#38BDF8]/20 text-[#38BDF8] px-4 py-2 flex items-center justify-center gap-2 z-[100] shadow-md border-b border-[#38BDF8]/10">
           <ShieldAlert size={14} className="animate-pulse" />
           <span className="text-[10px] font-black uppercase tracking-widest">Helper Mode</span>
         </div>
@@ -330,7 +330,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
             <Settings size={22} />
           </button>
           {!isHelper && (
-            <button onClick={() => setPrivateMode(!privateMode)} className={cn("h-12 w-12 flex items-center justify-center rounded-2xl transition-all", privateMode ? 'bg-[#C45000] text-white' : 'bg-white/5 text-white/40')}>
+            <button onClick={() => setPrivateMode(!privateMode)} className={cn("h-12 w-12 flex items-center justify-center rounded-2xl transition-all", privateMode ? 'bg-[#38BDF8] text-white' : 'bg-white/5 text-white/40')}>
               {privateMode ? <EyeOff size={22} /> : <Eye size={22} />}
             </button>
           )}
@@ -420,13 +420,13 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
 
 function NavBtn({ icon, label, active, onClick, badge, className }: { icon: any, label: string, active: boolean, onClick: () => void, badge?: number, className?: string }) {
   return (
-    <button onClick={onClick} className={cn("flex flex-col items-center gap-1.5 min-w-[56px] transition-all relative", active ? "text-[#C45000]" : "text-slate-400", className)}>
+    <button onClick={onClick} className={cn("flex flex-col items-center gap-1.5 min-w-[56px] transition-all relative", active ? "text-[#38BDF8]" : "text-slate-400", className)}>
       <div className={cn("transition-transform", active && "scale-110")}>
         {icon}
         {badge !== undefined && <div className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center ring-2 ring-white">{badge}</div>}
       </div>
       <span className="text-[11px] font-black uppercase tracking-tight">{label}</span>
-      {active && <div className="w-1.5 h-1.5 rounded-full bg-[#C45000] mt-0.5" />}
+      {active && <div className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] mt-0.5" />}
     </button>
   );
 }

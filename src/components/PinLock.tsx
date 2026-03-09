@@ -41,13 +41,13 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
 
   const texts = {
     "hi-IN": {
-      tagline: "बोलकर चलाओ AI से कारोबार",
+      tagline: "बोलकर चलाओ AI से कारोबार — बोलकर चलाओ AI से कारोबार",
       select: "भाषा चुनें",
       enter: "PIN दर्ज करें",
       error: "गलत PIN",
     },
     "en-IN": {
-      tagline: "Bolkar Chalao AI Se Karobaar",
+      tagline: "Bolkar Chalao AI Se Karobaar — बोलकर चलाओ AI से कारोबार",
       select: "Select Language",
       enter: "Enter PIN",
       error: "Wrong PIN",
@@ -59,12 +59,12 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
       <div className="w-full max-w-sm flex flex-col items-center mt-12">
         <div className="flex items-center gap-2 mb-3">
           <div className="relative flex items-center justify-center h-14 w-14 bg-white/10 rounded-2xl overflow-hidden backdrop-blur-md border border-white/20">
-            <Mic size={24} className="text-[#C45000] absolute -translate-x-1.5" />
-            <BookOpen size={24} className="text-[#1A6B3C] absolute translate-x-1.5" />
+            <Mic size={24} className="text-[#38BDF8] absolute -translate-x-1.5" />
+            <BookOpen size={24} className="text-[#38BDF8] absolute translate-x-1.5" />
           </div>
           <div className="text-3xl font-black tracking-tight flex items-baseline">
-            <span className="text-[#C45000]">Bol</span>
-            <span className="text-[#1A6B3C]">Vyapar</span>
+            <span className="text-[#38BDF8]">Bol</span>
+            <span className="text-[#38BDF8]">Vyapar</span>
             <span className="text-[#FFB300] ml-1 text-base font-bold">AI 🇮🇳</span>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
                 className={cn(
                   "relative flex flex-col items-center justify-center h-20 rounded-[20px] border transition-all",
                   language === lang.code 
-                    ? "border-[#C45000] bg-[#C45000]/10 ring-1 ring-[#C45000]" 
+                    ? "border-[#38BDF8] bg-[#38BDF8]/10 ring-1 ring-[#38BDF8]" 
                     : "border-white/10 bg-white/5"
                 )}
               >
@@ -102,7 +102,7 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
                 key={i}
                 className={cn(
                   "w-5 h-5 rounded-full border-2 transition-all duration-300",
-                  pin.length > i ? "bg-[#C45000] border-[#C45000] scale-125" : "border-white/20"
+                  pin.length > i ? "bg-[#38BDF8] border-[#38BDF8] scale-125" : "border-white/20"
                 )}
               />
             ))}
@@ -115,7 +115,7 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
             <button
               key={n}
               onClick={() => handleDigit(n.toString())}
-              className="h-16 w-16 rounded-full bg-white/5 active:bg-[#C45000] transition-all text-2xl font-bold flex items-center justify-center border border-white/10 text-white mx-auto"
+              className="h-16 w-16 rounded-full bg-white/5 active:bg-[#38BDF8] transition-all text-2xl font-bold flex items-center justify-center border border-white/10 text-white mx-auto"
             >
               {n}
             </button>
@@ -123,7 +123,7 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
           <div />
           <button
             onClick={() => handleDigit("0")}
-            className="h-16 w-16 rounded-full bg-white/5 active:bg-[#C45000] transition-all text-2xl font-bold flex items-center justify-center border border-white/10 text-white mx-auto"
+            className="h-16 w-16 rounded-full bg-white/5 active:bg-[#38BDF8] transition-all text-2xl font-bold flex items-center justify-center border border-white/10 text-white mx-auto"
           >
             0
           </button>
