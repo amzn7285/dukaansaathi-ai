@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -15,7 +16,7 @@ interface VoiceButtonProps {
   compact?: boolean;
 }
 
-const MAPPINGS_KEY = "bolvyapar_product_mappings";
+const MAPPINGS_KEY = "bolvyaapar_product_mappings";
 
 export default function VoiceButton({ role, language, privateMode, onTransactionSuccess, businessType = "kirana", stock = [], khata = [], compact }: VoiceButtonProps) {
   const [isListening, setIsListening] = useState(false);

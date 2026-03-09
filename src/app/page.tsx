@@ -6,8 +6,8 @@ import PinLock from "@/components/PinLock";
 import Dashboard from "@/components/Dashboard";
 import FirstLaunchFlow from "@/components/FirstLaunchFlow";
 
-const PROFILE_KEY = "bolvyapar_profile";
-const LANG_KEY = "bolvyapar_lang";
+const PROFILE_KEY = "bolvyaapar_profile";
+const LANG_KEY = "bolvyaapar_lang";
 
 export default function Home() {
   const [authenticated, setAuthenticated] = useState(false);

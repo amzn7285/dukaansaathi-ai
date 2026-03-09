@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -21,14 +22,14 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-const SALES_STORAGE_KEY = "bolvyapar_sales_history";
-const EXPENSES_STORAGE_KEY = "bolvyapar_expenses_history";
-const STOCK_STORAGE_KEY = "bolvyapar_stock_data";
-const CREDIT_KHATA_KEY = "bolvyapar_credit_khata";
-const JOBS_STORAGE_KEY = "bolvyapar_jobs_data";
-const PROFILE_KEY = "bolvyapar_profile";
-const REMINDERS_STORAGE_KEY = "bolvyapar_reminders_data";
-const BRIEFING_KEY = "bolvyapar_last_briefing_date";
+const SALES_STORAGE_KEY = "bolvyaapar_sales_history";
+const EXPENSES_STORAGE_KEY = "bolvyaapar_expenses_history";
+const STOCK_STORAGE_KEY = "bolvyaapar_stock_data";
+const CREDIT_KHATA_KEY = "bolvyaapar_credit_khata";
+const JOBS_STORAGE_KEY = "bolvyaapar_jobs_data";
+const PROFILE_KEY = "bolvyaapar_profile";
+const REMINDERS_STORAGE_KEY = "bolvyaapar_reminders_data";
+const BRIEFING_KEY = "bolvyaapar_last_briefing_date";
 
 const BUSINESS_TYPES = [
   { id: 'kirana', emoji: '🏪', en: "Kirana Store", hi: "किराना स्टोर", isService: false },
@@ -82,7 +83,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
     loadData();
   }, []);
 
-  // Morning Briefing Logic
   useEffect(() => {
     if (isHelper || !reminders || reminders.length === 0) return;
 
