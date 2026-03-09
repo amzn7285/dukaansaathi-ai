@@ -14,7 +14,7 @@ const ProcessVoiceSaleTransactionOutputSchema = z.object({
   lessonText: z.string(),
   transactionDetails: z.object({
     productName: z.string().optional(),
-    quantity: z.number().optional(),
+    quantity: n.number().optional(),
     unit: z.string().optional(),
     customerName: z.string().optional(),
     price: z.number().optional(),
@@ -38,7 +38,7 @@ Respond ONLY with JSON.`;
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://dukaansaathi-ai-syed-gulam-ahmeds-projects.vercel.app',
+        'HTTP-Referer': 'https://bolvyapar-ai.vercel.app',
         'X-Title': 'DukaanSaathi AI'
       },
       body: JSON.stringify({
