@@ -13,6 +13,7 @@ import VoiceButton from "./VoiceButton";
 import ConnectivityBanner from "./ConnectivityBanner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { isSameDay, parseISO } from "date-fns";
 
 interface DashboardProps {
   role: "owner" | "helper";
@@ -26,6 +27,8 @@ const STOCK_STORAGE_KEY = "bolvyapar_stock_data";
 const CREDIT_KHATA_KEY = "bolvyapar_credit_khata";
 const JOBS_STORAGE_KEY = "bolvyapar_jobs_data";
 const PROFILE_KEY = "bolvyapar_profile";
+const REMINDERS_STORAGE_KEY = "bolvyapar_reminders_data";
+const BRIEFING_KEY = "bolvyapar_last_briefing_date";
 
 const BUSINESS_TYPES = [
   { id: 'kirana', emoji: '🏪', en: "Kirana Store", hi: "किराना स्टोर", isService: false },
@@ -46,6 +49,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   const [stock, setStock] = useState<any[]>([]);
   const [creditKhata, setCreditKhata] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [reminders, setReminders] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [summaryModal, setSummaryModal] = useState<{ show: boolean, text: string, whatsappUrl: string } | null>(null);
@@ -69,15 +73,61 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       const savedJobs = localStorage.getItem(JOBS_STORAGE_KEY);
       if (savedJobs) try { setJobs(JSON.parse(savedJobs)); } catch (e) { console.error(e); }
 
+      const savedReminders = localStorage.getItem(REMINDERS_STORAGE_KEY);
+      if (savedReminders) try { setReminders(JSON.parse(savedReminders)); } catch (e) { console.error(e); }
+
       const savedProfile = localStorage.getItem(PROFILE_KEY);
       if (savedProfile) try { setProfile(JSON.parse(savedProfile)); } catch (e) { console.error(e); }
     };
     loadData();
   }, []);
 
+  // Morning Briefing Logic
+  useEffect(() => {
+    if (isHelper || reminders.length === 0) return;
+
+    const today = new Date();
+    const lastBriefing = localStorage.getItem(BRIEFING_KEY);
+    
+    if (!lastBriefing || !isSameDay(parseISO(lastBriefing), today)) {
+      const todaysReminders = reminders.filter(r => isSameDay(parseISO(r.date), today));
+      
+      if (todaysReminders.length > 0) {
+        const intro = language === 'hi-IN' ? "आज के लिए कुछ जरूरी काम हैं:" : "You have some tasks for today:";
+        const items = todaysReminders.map(r => 
+          r.customerName 
+            ? (language === 'hi-IN' ? `${r.customerName} को याद दिलाना है: ${r.message}` : `Remind ${r.customerName}: ${r.message}`)
+            : r.message
+        ).join(". ");
+        
+        const utterance = new SpeechSynthesisUtterance(`${intro} ${items}`);
+        utterance.lang = language;
+        window.speechSynthesis.speak(utterance);
+        
+        localStorage.setItem(BRIEFING_KEY, today.toISOString());
+      }
+    }
+  }, [reminders, isHelper, language]);
+
   const handleTransaction = (details: any) => {
     const timestamp = new Date().toISOString();
     
+    // Handle Reminders
+    if (details.intent === 'reminder') {
+      const newReminder = {
+        id: Date.now(),
+        timestamp,
+        customerName: details.customerName || null,
+        message: details.message || details.productName,
+        date: details.date || timestamp,
+        completed: false
+      };
+      const updatedReminders = [newReminder, ...reminders];
+      setReminders(updatedReminders);
+      localStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(updatedReminders));
+      return;
+    }
+
     // Handle Job Status Updates
     if (details.intent === 'job_complete') {
       const updatedJobs = jobs.map(j => {
@@ -310,7 +360,16 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
                 <CreditKhataTab language={language} customers={creditKhata} onUpdateCustomers={(k) => { setCreditKhata(k); localStorage.setItem(CREDIT_KHATA_KEY, JSON.stringify(k)); }} profile={profile} sales={sales} jobs={jobs} />
               </TabsContent>
               <TabsContent value="report" className="m-0 p-4">
-                <ReportTab role={role} privateMode={privateMode} language={language} sales={sales} expenses={expenses} profile={profile} />
+                <ReportTab 
+                  role={role} 
+                  privateMode={privateMode} 
+                  language={language} 
+                  sales={sales} 
+                  expenses={expenses} 
+                  profile={profile} 
+                  reminders={reminders}
+                  onUpdateReminders={(updated) => { setReminders(updated); localStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(updated)); }}
+                />
               </TabsContent>
               <TabsContent value="settings" className="m-0 p-4">
                 <SettingsTab language={language} profile={profile} onUpdateProfile={(p) => setProfile(p)} />

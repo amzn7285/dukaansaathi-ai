@@ -83,14 +83,14 @@ Intents:
 2. expense (Business kharcha)
 3. credit (Udhaar dena)
 4. payment (Udhaar vapas lena)
-5. job_create (Service job: tailor/repair/etc - e.g. 'Sunita ne 500 advance diya suit ke liye total 1300'. Extract total amount as price and the partial as advance)
-6. job_complete (Mark job ready - e.g. 'Rahul ka kaam ho gaya')
+5. job_create (Service job)
+6. job_complete (Mark job ready)
+7. reminder (Set a reminder for owner/customer - e.g. 'Ramesh ko kal yaad dilao' or 'Kal chawal mangana hai')
 
 Context: ${businessType}. Stock: ${stockCategories}. Khata: ${khataNames}. 
-For job_create: extract customerName, productName (item being serviced), description (problem), price (TOTAL price), advance (partial paid), dueDate.
-For job_complete: extract customerName.
+For reminder: extract customerName, message, date (ISO string for the reminder date).
 
-Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...", "customerName": "...", "price": 0, "quantity": 0, "unit": "...", "description": "...", "advance": 0}`;
+Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...", "customerName": "...", "price": 0, "quantity": 0, "unit": "...", "description": "...", "advance": 0, "message": "...", "date": "..."}`;
 
       const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userMessage: query, systemPrompt }) });
       const data = await response.json();
@@ -104,7 +104,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
   };
 
   const handleTransactionResult = (txn: any) => {
-    if (isHelper && (txn.intent === 'expense' || txn.intent === 'credit' || txn.intent === 'payment' || txn.intent === 'job_create')) {
+    if (isHelper && txn.intent !== 'sale') {
       speak(language === "hi-IN" ? "सिर्फ सेल लिखें।" : "Sales only.");
       return;
     }
@@ -163,6 +163,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
   if (pendingTxn && !isAskingClarification) {
     const isJob = pendingTxn.intent === 'job_create';
     const isJobComplete = pendingTxn.intent === 'job_complete';
+    const isReminder = pendingTxn.intent === 'reminder';
     const isAdvance = (pendingTxn.advance || 0) > 0;
     
     return (
@@ -171,20 +172,22 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
           <div className="p-8 space-y-8">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="h-28 w-28 rounded-full bg-slate-50 flex items-center justify-center text-6xl">
-                {isJob ? '🛠️' : isJobComplete ? '✅' : '🛍️'}
+                {isJob ? '🛠️' : isJobComplete ? '✅' : isReminder ? '🔔' : '🛍️'}
               </div>
               <div>
                 <h2 className="text-3xl font-black text-[#0D2240] uppercase tracking-tight">
-                  {isJobComplete ? pendingTxn.customerName : (pendingTxn.productName || pendingTxn.customerName)}
+                  {isJobComplete ? pendingTxn.customerName : isReminder ? (pendingTxn.customerName || 'Owner') : (pendingTxn.productName || pendingTxn.customerName)}
                 </h2>
                 <p className="text-xl font-black text-slate-400 mt-2">
                   {isJobComplete ? (language === 'hi-IN' ? 'काम हो गया' : 'Ready') : 
                    isJob ? (language === 'hi-IN' ? 'नया ऑर्डर' : 'New Order') : 
+                   isReminder ? (language === 'hi-IN' ? 'याद दिलाना है' : 'Reminder') :
                    `${pendingTxn.quantity || ''} ${pendingTxn.unit || ''}`}
                 </p>
+                {isReminder && <p className="text-sm font-bold text-slate-500 mt-2 italic">"{pendingTxn.message}"</p>}
               </div>
             </div>
-            {!isHelper && !isJobComplete && (pendingTxn.price > 0 || isAdvance) && (
+            {!isHelper && !isJobComplete && !isReminder && (pendingTxn.price > 0 || isAdvance) && (
               <div className="space-y-2 text-center">
                 {isJob && isAdvance && (
                   <p className="text-emerald-600 font-bold uppercase text-[10px] tracking-widest">
@@ -195,11 +198,6 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
                   ₹{isJob ? (pendingTxn.price - (pendingTxn.advance || 0)) : pendingTxn.price}
                   {isJob && <span className="text-sm ml-2 text-slate-400 uppercase">Balance</span>}
                 </div>
-                {isJob && (
-                  <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">
-                    Total: ₹{pendingTxn.price}
-                  </p>
-                )}
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">

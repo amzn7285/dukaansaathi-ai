@@ -3,9 +3,9 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Eye, Share2, Download, TrendingUp, MinusCircle, Users, Star, Calendar, MessageCircle } from "lucide-react";
+import { Eye, Share2, Download, TrendingUp, MinusCircle, Users, Star, Calendar, MessageCircle, Bell, CheckCircle2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, isSameDay, parseISO } from "date-fns";
 
 interface ReportTabProps {
   role: "owner" | "helper";
@@ -14,9 +14,11 @@ interface ReportTabProps {
   sales: any[];
   expenses: any[];
   profile: any;
+  reminders?: any[];
+  onUpdateReminders?: (updated: any[]) => void;
 }
 
-export default function ReportTab({ language, privateMode, sales, expenses, profile }: ReportTabProps) {
+export default function ReportTab({ language, privateMode, sales, expenses, profile, reminders = [], onUpdateReminders }: ReportTabProps) {
   const [revealProfit, setRevealProfit] = useState(false);
   const { toast } = useToast();
 
@@ -27,6 +29,23 @@ export default function ReportTab({ language, privateMode, sales, expenses, prof
   const totalRevenue = todaySales.reduce((acc, curr) => acc + (curr.amount || 0), 0);
   const totalExp = todayExpenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
   const netProfit = totalRevenue - totalExp;
+
+  const handleReminderWhatsApp = (reminder: any) => {
+    const shopName = profile?.shopName || "BolVyapar Shop";
+    const msg = language === 'hi-IN'
+      ? `नमस्ते ${reminder.customerName}, ${shopName} से एक छोटा रिमाइंडर: ${reminder.message}. धन्यवाद!`
+      : `Hi ${reminder.customerName}, a friendly reminder from ${shopName}: ${reminder.message}. Thank you!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleDeleteReminder = (id: number) => {
+    if (onUpdateReminders) {
+      onUpdateReminders(reminders.filter(r => r.id !== id));
+      toast({ title: language === 'hi-IN' ? "हटा दिया गया" : "Reminder Removed" });
+    }
+  };
+
+  const todaysReminders = reminders.filter(r => isSameDay(parseISO(r.date), new Date()));
 
   const customerStats = useMemo(() => {
     const stats: Record<string, any> = {};
@@ -55,41 +74,18 @@ export default function ReportTab({ language, privateMode, sales, expenses, prof
       .slice(0, 10);
   }, [sales, language]);
 
-  const handleWeeklyShare = () => {
-    const itemTrends: Record<string, number> = {};
-    sales.slice(0, 50).forEach(s => {
-      itemTrends[s.item] = (itemTrends[s.item] || 0) + 1;
-    });
-    const trendingItems = Object.entries(itemTrends).sort((a, b) => b[1] - a[1]).slice(0, 2).map(i => i[0]);
-
-    const shopName = profile?.shopName || "BolVyapar AI Shop";
-    const familyPhone = profile?.familyPhone || "";
-    const message = language === 'hi-IN'
-      ? `📅 *साप्ताहिक व्यापार रिपोर्ट: ${shopName}*\n\n✅ व्यापार बढ़ रहा है!\n🔥 ज्यादा मांग: ${trendingItems.join(", ")}\n👥 ग्राहकों का आना: लगातार\n📈 ओवरऑल ग्रोथ: पॉजिटिव\n\n_BolVyapar AI_`
-      : `📅 *Weekly Business Trends: ${shopName}*\n\n✅ Business is growing!\n🔥 High Demand: ${trendingItems.join(", ")}\n👥 Customer footfall: Steady\n📈 Overall Growth: Positive\n\n_BolVyapar AI_`;
-
-    window.open(`https://wa.me/${familyPhone}?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  const handleCreditReminder = (customer: any) => {
-    const shopName = profile?.shopName || "BolVyapar AI Shop";
-    const message = language === 'hi-IN'
-      ? `नमस्ते ${customer.name}! ${shopName} से एक छोटा रिमाइंडर। आपका ₹${customer.creditDue} का बैलेंस बकाया है। कृपया समय मिलने पर भुगतान करें। धन्यवाद!`
-      : `Hi ${customer.name}! A friendly reminder from ${shopName}. You have a pending balance of ₹${customer.creditDue}. Please clear it at your convenience. Thank you!`;
-    
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
   const texts = {
     "hi-IN": {
       revenue: "आज की कुल बिक्री",
       expenses: "आज के खर्चे", profit: "आज का मुनाफा", insights: "AI एनालिसिस",
-      customers: "खास ग्राहक", whatsapp: "शेयर ट्रेंड्स", reveal: "देखें", remind: "रिमाइंडर"
+      customers: "खास ग्राहक", whatsapp: "शेयर ट्रेंड्स", reveal: "देखें", remind: "रिमाइंडर",
+      reminderTitle: "आज के रिमाइंडर", noReminders: "आज कोई काम नहीं है"
     },
     "en-IN": {
       revenue: "TODAY'S REVENUE",
       expenses: "TODAY'S EXPENSES", profit: "NET PROFIT", insights: "AI BUSINESS INSIGHTS",
-      customers: "TOP CUSTOMERS", whatsapp: "Share Trends", reveal: "Reveal", remind: "Remind"
+      customers: "TOP CUSTOMERS", whatsapp: "Share Trends", reveal: "Reveal", remind: "Remind",
+      reminderTitle: "Today's Reminders", noReminders: "No reminders for today"
     }
   }[language];
 
@@ -107,13 +103,45 @@ export default function ReportTab({ language, privateMode, sales, expenses, prof
             <p className={cn("text-[26px] font-black text-white", privateMode && "blur-xl")}>₹{totalRevenue.toLocaleString()}</p>
           </CardContent>
         </Card>
-        <Card className="bg-white border-slate-100 rounded-[32px] overflow-hidden shadow-sm">
-          <CardContent className="p-8 relative">
-            <MinusCircle size={80} className="absolute right-[-10px] bottom-[-10px] text-slate-50 opacity-10" />
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">{texts.expenses}</p>
-            <p className={cn("text-[26px] font-black text-red-600", privateMode && "blur-xl")}>₹{totalExp.toLocaleString()}</p>
-          </CardContent>
-        </Card>
+      </div>
+
+      {/* Reminders Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-slate-900 text-lg font-black tracking-tight">{texts.reminderTitle}</h3>
+          <Bell size={20} className="text-[#C45000]" />
+        </div>
+        {todaysReminders.length === 0 ? (
+          <Card className="rounded-[24px] border-dashed border-slate-200 bg-white/50 p-6 text-center">
+            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{texts.noReminders}</p>
+          </Card>
+        ) : (
+          todaysReminders.map((r) => (
+            <Card key={r.id} className="rounded-[24px] border-slate-100 shadow-sm bg-white overflow-hidden">
+              <CardContent className="p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
+                    <Bell size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-sm">{r.customerName || "Owner Task"}</h4>
+                    <p className="text-xs text-slate-500 italic">"{r.message}"</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {r.customerName && (
+                    <button onClick={() => handleReminderWhatsApp(r)} className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+                      <MessageCircle size={18} />
+                    </button>
+                  )}
+                  <button onClick={() => handleDeleteReminder(r.id)} className="h-10 w-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center shadow-sm">
+                    <CheckCircle2 size={18} />
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       <Card className="rounded-[32px] border-slate-100 shadow-sm bg-white overflow-hidden">
@@ -137,19 +165,10 @@ export default function ReportTab({ language, privateMode, sales, expenses, prof
                   <div><h4 className="font-bold text-slate-800">{customer.name}</h4><div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold uppercase"><Calendar size={10} /> {format(new Date(customer.lastVisit), 'MMM d')}</div></div>
                   <div className="text-right"><p className="text-xs font-black text-[#1A6B3C]">₹{customer.totalSpent}</p><p className="text-[9px] text-slate-400 uppercase font-bold">{customer.visits} Visited</p></div>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-slate-50">
-                  <div className="flex items-center gap-1 bg-[#C45000]/5 px-2 py-1 rounded-lg"><Star size={10} className="text-[#C45000]" /><span className="text-[9px] font-black text-[#C45000] uppercase truncate max-w-[80px]">{customer.favoriteProduct}</span></div>
-                  {customer.creditDue > 0 && <button onClick={() => handleCreditReminder(customer)} className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold uppercase border border-amber-100"><MessageCircle size={12} /> {texts.remind}</button>}
-                </div>
               </div>
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      <div className="flex gap-4 pt-4">
-        <button onClick={handleWeeklyShare} className="flex-1 h-14 bg-[#1A6B3C] text-white rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-[#1A6B3C]/20"><Share2 size={18} /> {texts.whatsapp}</button>
-        <button onClick={() => toast({ title: "Exported!" })} className="w-14 h-14 bg-white border border-slate-200 text-slate-400 rounded-2xl flex items-center justify-center shadow-sm"><Download size={20} /></button>
       </div>
     </div>
   );
