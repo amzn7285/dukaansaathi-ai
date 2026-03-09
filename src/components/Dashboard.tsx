@@ -112,7 +112,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   const handleTransaction = (details: any) => {
     const timestamp = new Date().toISOString();
     
-    // Handle Reminders
     if (details.intent === 'reminder') {
       const newReminder = {
         id: Date.now(),
@@ -128,7 +127,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       return;
     }
 
-    // Handle Job Status Updates
     if (details.intent === 'job_complete') {
       const updatedJobs = jobs.map(j => {
         if (j.customerName?.toLowerCase() === details.customerName?.toLowerCase() && (j.status === 'Received' || j.status === 'In Progress')) {
@@ -139,13 +137,12 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       setJobs(updatedJobs);
       localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(updatedJobs));
       
-      const shopName = profile?.shopName || "BolVyapar Shop";
+      const shopName = profile?.shopName || "BolVyaapar Shop";
       const msg = `नमस्ते ${details.customerName}, आपका काम तैयार है — आ जाइये। धन्यवाद! - ${shopName}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
       return;
     }
 
-    // Handle New Job Creation with Advance
     if (details.intent === 'job_create') {
       const total = details.price || 0;
       const advance = details.advance || 0;
@@ -166,7 +163,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       setJobs(updatedJobs);
       localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(updatedJobs));
 
-      // Also create/update Khata entry for the balance
       if (balance > 0 || advance > 0) {
         let exists = false;
         const updatedKhata = creditKhata.map(c => {
@@ -225,7 +221,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       setCreditKhata(updatedKhata);
       localStorage.setItem(CREDIT_KHATA_KEY, JSON.stringify(updatedKhata));
 
-      // If it's a service biz, also try to mark matching job as delivered/paid
       const bizInfo = BUSINESS_TYPES.find(b => b.id === profile?.businessType);
       if (bizInfo?.isService) {
         const updatedJobs = jobs.map(j => {
@@ -240,13 +235,11 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       return;
     }
 
-    // Default Sale
     const newSale = { id: Date.now(), timestamp, item: details.productName || "Unknown Item", qty: details.quantity ? `${details.quantity} ${details.unit || ''}` : "---", customer: details.customerName || (language === 'hi-IN' ? 'ग्राहक' : 'Customer'), amount: details.price || 0 };
     const updatedSales = [newSale, ...sales];
     setSales(updatedSales);
     localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(updatedSales));
 
-    // Stock update logic
     const soldQty = Number(details.quantity) || 0;
     const prodName = (details.productName || "").toLowerCase();
     const updatedStock = stock.map(item => {
@@ -284,7 +277,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       utterance.lang = language;
       window.speechSynthesis.speak(utterance);
 
-      const shareMsg = `📊 *आज का हिसाब: ${profile?.shopName}*\n✅ ${count} बिक्री\n🔥 खास: ${bestSeller}\n_BolVyapar AI_`;
+      const shareMsg = `📊 *आज का हिसाब: ${profile?.shopName}*\n✅ ${count} बिक्री\n🔥 खास: ${bestSeller}\n_BolVyaapar AI_`;
       setSummaryModal({ show: true, text, whatsappUrl: `https://wa.me/${profile?.ownerPhone}?text=${encodeURIComponent(shareMsg)}` });
     } catch (err) {
       setSummaryModal({ show: true, text: "Offline report ready.", whatsappUrl: `https://wa.me/${profile?.ownerPhone}?text=Summary` });
@@ -316,11 +309,11 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       <header className="bg-[#0D2240] px-6 py-5 flex items-center justify-between shadow-xl z-20 shrink-0 border-b border-white/5">
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 mb-1 opacity-80">
-             <span className="text-[#38BDF8] font-black text-[10px] uppercase tracking-tighter">BolVyapar</span>
+             <span className="text-[#38BDF8] font-black text-[10px] uppercase tracking-tighter">BolVyaapar</span>
              <span className="text-[#FFB300] font-black text-[10px]">AI</span>
           </div>
           <h1 className="text-xl font-black text-white tracking-tight truncate max-w-[180px]">
-            {profile?.shopName || 'BolVyapar Shop'}
+            {profile?.shopName || 'BolVyaapar Shop'}
           </h1>
           <p className="text-[10px] text-[#FFB300] font-bold italic tracking-tight mb-0.5">
             {texts.tagline}

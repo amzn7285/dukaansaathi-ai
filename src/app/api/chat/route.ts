@@ -17,12 +17,12 @@ export async function POST(req: NextRequest) {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://bolvyapar-ai.vercel.app',
-        'X-Title': 'BolVyapar AI'
+        'X-Title': 'BolVyaapar AI'
       },
       body: JSON.stringify({
         model: 'meta-llama/llama-3.1-8b-instruct:free',
         messages: [
-          { role: 'system', content: systemPrompt || 'You are BolVyapar AI, a helpful shop assistant.' },
+          { role: 'system', content: systemPrompt || 'You are BolVyaapar AI, a helpful shop assistant.' },
           { role: 'user', content: userMessage || '' }
         ]
       })

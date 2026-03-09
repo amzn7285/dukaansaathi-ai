@@ -64,7 +64,7 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
           </div>
           <div className="text-3xl font-black tracking-tight flex items-baseline">
             <span className="text-[#38BDF8]">Bol</span>
-            <span className="text-[#38BDF8]">Vyapar</span>
+            <span className="text-[#38BDF8]">Vyaapar</span>
             <span className="text-[#FFB300] ml-1 text-base font-bold">AI 🇮🇳</span>
           </div>
         </div>

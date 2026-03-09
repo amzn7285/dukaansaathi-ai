@@ -23,7 +23,7 @@ const ProcessVoiceSaleTransactionOutputSchema = z.object({
 export type ProcessVoiceSaleTransactionOutput = z.infer<typeof ProcessVoiceSaleTransactionOutputSchema>;
 
 export async function processVoiceSaleTransaction(input: ProcessVoiceSaleTransactionInput): Promise<ProcessVoiceSaleTransactionOutput> {
-  const systemPrompt = `You are BolVyapar AI. Task: Parse voice input.
+  const systemPrompt = `You are BolVyaapar AI. Task: Parse voice input.
 1. 'spokenResponse': 1-2 warm sentences confirmation.
 2. 'lessonText': 2-sentence business insight.
 3. 'transactionDetails': Extracted data.
@@ -39,7 +39,7 @@ Respond ONLY with JSON.`;
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://bolvyapar-ai.vercel.app',
-        'X-Title': 'BolVyapar AI'
+        'X-Title': 'BolVyaapar AI'
       },
       body: JSON.stringify({
         model: 'google/gemini-2.0-flash-exp:free',

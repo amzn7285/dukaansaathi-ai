@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'BolVyapar AI — बोलकर चलाओ AI से कारोबार',
+  title: 'BolVyaapar AI — बोलकर चलाओ AI से कारोबार',
   description: 'Bolkar Chalao AI Se Karobaar — बोलकर चलाओ AI से कारोबार. Your voice-first AI business partner.',
 };
 

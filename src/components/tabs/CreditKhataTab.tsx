@@ -31,7 +31,7 @@ export default function CreditKhataTab({ language, customers, onUpdateCustomers,
   );
 
   const handleSendReminder = async (customer: any) => {
-    const shopName = profile?.shopName || "BolVyapar AI Shop";
+    const shopName = profile?.shopName || "BolVyaapar AI Shop";
     const systemPrompt = `Create a friendly 1-sentence WhatsApp reminder for a customer who owes money. 
     Customer: ${customer.name}. Amount: ₹${customer.balance}. Shop: ${shopName}. 
     Language: ${language === 'hi-IN' ? 'Hindi' : 'English'}. NO Net Profit details.`;
