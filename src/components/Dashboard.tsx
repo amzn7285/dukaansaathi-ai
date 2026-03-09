@@ -18,19 +18,27 @@ interface DashboardProps {
 }
 
 const SALES_STORAGE_KEY = "bolvyapar_sales_history";
+const STOCK_STORAGE_KEY = "bolvyapar_stock_data";
 const SNOOZE_KEY = "bolvyapar_lesson_snooze";
 const SNOOZE_DURATION = 3600000;
+
+const DEFAULT_STOCK = [
+  { id: 'grains', emoji: '🌾', name: 'Grains', hiName: 'अनाज', qty: 100, unit: 'kg', level: 100 },
+  { id: 'dairy', emoji: '🥛', name: 'Dairy', hiName: 'डेयरी', qty: 50, unit: 'L', level: 100 },
+  { id: 'essentials', emoji: '🧼', name: 'Essentials', hiName: 'ज़रूरी सामान', qty: 200, unit: 'units', level: 100 },
+];
 
 export default function Dashboard({ role, language, onLogout }: DashboardProps) {
   const [activeTab, setActiveTab] = useState("dukaan");
   const [privateMode, setPrivateMode] = useState(false);
   const [showCustomerView, setShowCustomerView] = useState(false);
   const [sales, setSales] = useState<any[]>([]);
+  const [stock, setStock] = useState<any[]>(DEFAULT_STOCK);
   const [lastTransaction, setLastTransaction] = useState<any>(null);
   const [currentLesson, setCurrentLesson] = useState<string | null>(null);
   const [showLessonCard, setShowLessonCard] = useState(false);
 
-  // Load sales from localStorage on mount
+  // Load data from localStorage on mount
   useEffect(() => {
     const savedSales = localStorage.getItem(SALES_STORAGE_KEY);
     if (savedSales) {
@@ -40,9 +48,19 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
         console.error("Failed to parse saved sales", e);
       }
     }
+
+    const savedStock = localStorage.getItem(STOCK_STORAGE_KEY);
+    if (savedStock) {
+      try {
+        setStock(JSON.parse(savedStock));
+      } catch (e) {
+        console.error("Failed to parse saved stock", e);
+      }
+    }
   }, []);
 
   const handleTransaction = (details: any) => {
+    // 1. Record the Sale
     const newSale = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
@@ -56,6 +74,38 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
     setSales(updatedSales);
     setLastTransaction(details);
     localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(updatedSales));
+
+    // 2. Reduce Stock
+    const soldQty = Number(details.quantity) || 0;
+    const prodName = (details.productName || "").toLowerCase();
+
+    const updatedStock = stock.map(item => {
+      let isMatch = false;
+      
+      // Simple matching logic
+      if (item.id === 'dairy' && (prodName.includes('milk') || prodName.includes('doodh') || prodName.includes('dairy'))) {
+        isMatch = true;
+      } else if (item.id === 'grains' && (prodName.includes('rice') || prodName.includes('grain') || prodName.includes('chawal') || prodName.includes('atta') || prodName.includes('wheat') || prodName.includes('dal'))) {
+        isMatch = true;
+      } else if (item.id === 'essentials' && !isMatch) {
+        // Fallback to essentials if it doesn't match the specific categories
+        // We only want to fallback if it wasn't a match for previous ones
+        const otherCategoriesMatch = (prodName.includes('milk') || prodName.includes('doodh') || prodName.includes('rice') || prodName.includes('grain'));
+        if (!otherCategoriesMatch) isMatch = true;
+      }
+
+      if (isMatch) {
+        const newQty = Math.max(0, item.qty - soldQty);
+        // Calculate level percentage (assuming initial values as max for demo)
+        const maxQty = item.id === 'grains' ? 100 : item.id === 'dairy' ? 50 : 200;
+        const newLevel = (newQty / maxQty) * 100;
+        return { ...item, qty: newQty, level: newLevel };
+      }
+      return item;
+    });
+
+    setStock(updatedStock);
+    localStorage.setItem(STOCK_STORAGE_KEY, JSON.stringify(updatedStock));
   };
 
   const handleLessonGenerated = (lesson: string) => {
@@ -135,7 +185,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
             <DukaanTab privateMode={privateMode} language={language} sales={sales} />
           </TabsContent>
           <TabsContent value="stock" className="m-0 p-4">
-            <StockTab language={language} />
+            <StockTab language={language} stock={stock} />
           </TabsContent>
           <TabsContent value="report" className="m-0 p-4">
             <ReportTab role={role} privateMode={privateMode} language={language} sales={sales} />

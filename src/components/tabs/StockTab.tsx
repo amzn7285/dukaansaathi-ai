@@ -1,23 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Volume2 } from "lucide-react";
 
 interface StockTabProps {
   language: "hi-IN" | "en-IN";
+  stock: any[];
 }
 
-export default function StockTab({ language }: StockTabProps) {
-  const [stock] = useState([
-    { id: 'grains', emoji: '🌾', name: language === 'hi-IN' ? 'अनाज' : 'Grains', qty: 25, unit: language === 'hi-IN' ? 'kg' : 'kg', level: 80 },
-    { id: 'dairy', emoji: '🥛', name: language === 'hi-IN' ? 'डेयरी' : 'Dairy', qty: 15, unit: language === 'hi-IN' ? 'L' : 'L', level: 25 },
-    { id: 'essentials', emoji: '🧼', name: language === 'hi-IN' ? 'ज़रूरी सामान' : 'Essentials', qty: 30, unit: language === 'hi-IN' ? 'units' : 'units', level: 12 },
-  ]);
-
+export default function StockTab({ language, stock }: StockTabProps) {
   const speakStock = (item: any) => {
-    const text = `${item.name} stock is ${item.qty} ${item.unit}.`;
+    const name = language === 'hi-IN' ? item.hiName : item.name;
+    const text = `${name} stock is ${item.qty} ${item.unit}.`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = language;
     window.speechSynthesis.speak(utterance);
@@ -25,7 +20,9 @@ export default function StockTab({ language }: StockTabProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-slate-900 text-lg font-black tracking-tight mb-4 px-1">Inventory Status</h3>
+      <h3 className="text-slate-900 text-lg font-black tracking-tight mb-4 px-1">
+        {language === 'hi-IN' ? 'इन्वेंट्री स्टेटस' : 'Inventory Status'}
+      </h3>
       <div className="grid grid-cols-1 gap-4">
         {stock.map((item) => (
           <Card key={item.id} className="bg-white border-slate-100 rounded-[24px] overflow-hidden shadow-sm">
@@ -34,8 +31,13 @@ export default function StockTab({ language }: StockTabProps) {
                 <div className="flex gap-4 items-center">
                   <span className="text-4xl">{item.emoji}</span>
                   <div>
-                    <h3 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest">{item.name}</h3>
-                    <p className="text-[22px] font-black text-slate-900">{item.qty}<span className="text-xs ml-1 font-bold text-slate-400 uppercase">{item.unit}</span></p>
+                    <h3 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                      {language === 'hi-IN' ? item.hiName : item.name}
+                    </h3>
+                    <p className="text-[22px] font-black text-slate-900">
+                      {item.qty}
+                      <span className="text-xs ml-1 font-bold text-slate-400 uppercase">{item.unit}</span>
+                    </p>
                   </div>
                 </div>
                 <button 
@@ -48,8 +50,8 @@ export default function StockTab({ language }: StockTabProps) {
               <div className="space-y-2">
                 <Progress value={item.level} className="h-2 rounded-full" />
                 <div className="flex justify-between text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                  <span>Critical</span>
-                  <span>Healthy</span>
+                  <span>{language === 'hi-IN' ? 'खत्म होने वाला है' : 'Critical'}</span>
+                  <span>{language === 'hi-IN' ? 'पर्याप्त है' : 'Healthy'}</span>
                 </div>
               </div>
             </CardContent>
