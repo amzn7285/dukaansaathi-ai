@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -137,6 +138,21 @@ export default function VoiceButton({
   const processQuery = async (query: string) => {
     if (!query.trim()) return;
     setIsProcessing(true);
+
+    // Check if offline
+    if (!navigator.onLine) {
+      // Offline fallback: Save as generic sale without AI response
+      const fallbackTxn = {
+        spokenResponse: language === "hi-IN" ? "ऑफलाइन सुरक्षित किया गया" : "Saved Offline",
+        productName: query,
+        price: 0,
+        confidence: 1
+      };
+      finalizeTransaction(fallbackTxn);
+      setIsProcessing(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -249,7 +265,10 @@ export default function VoiceButton({
 
   const finalizeTransaction = (txn: any) => {
     setPendingTxn(txn);
-    speak(txn.spokenResponse);
+    // Only speak confirmation if online, otherwise just show UI
+    if (navigator.onLine) {
+      speak(txn.spokenResponse);
+    }
     let timeLeft = 5;
     setAutoConfirmTimer(timeLeft);
     const interval = setInterval(() => {
@@ -274,7 +293,9 @@ export default function VoiceButton({
     clearInterval((window as any)._pendingInterval);
     setPendingTxn(null);
     setAutoConfirmTimer(null);
-    speak(language === "hi-IN" ? "हटा दिया।" : "Removed.");
+    if (navigator.onLine) {
+      speak(language === "hi-IN" ? "हटा दिया।" : "Removed.");
+    }
   };
 
   if (pendingTxn && !isAskingClarification) {
@@ -310,7 +331,7 @@ export default function VoiceButton({
                   style={{ width: `${(autoConfirmTimer || 0) * 20}%` }}
                 />
               </div>
-              <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Auto Confirming in {autoConfirmTimer}s...</p>
+              <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Confirming in {autoConfirmTimer}s...</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
