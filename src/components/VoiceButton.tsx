@@ -71,7 +71,19 @@ export default function VoiceButton({ role, language, privateMode, onTransaction
     setIsProcessing(true);
 
     if (!navigator.onLine) {
-      finalizeTransaction({ spokenResponse: language === "hi-IN" ? "ऑफलाइन सहेजा गया" : "Saved Offline", productName: query, price: 0, quantity: 1, intent: "sale" });
+      const qtyMatch = query.match(/(\d+(\.\d+)?)/);
+      const localQty = qtyMatch ? parseFloat(qtyMatch[1]) : 1;
+      const unitMatch = query.match(/\b(kg|kilo|किलो|litre|liter|L|gram|gm|piece|pcs|bottle|packet)\b/i);
+      const localUnit = unitMatch ? unitMatch[1] : '';
+      const localName = query.replace(/\b(sold|becha|diya|बेचा)\b/gi, '').replace(/(\d+(\.\d+)?)\s*(kg|kilo|किलो|litre|liter|piece|pcs|bottle|packet)?/gi, '').trim() || query;
+      finalizeTransaction({ 
+        spokenResponse: language === "hi-IN" ? "बिक्री दर्ज हो गई" : "Sale recorded", 
+        productName: localName, 
+        price: 0, 
+        quantity: localQty, 
+        unit: localUnit, 
+        intent: "sale" 
+      });
       setIsProcessing(false);
       return;
     }
@@ -87,13 +99,25 @@ JSON format: {"intent":"sale","spokenResponse":"brief confirm in Hindi/English",
 Intent must be one of: sale, expense, credit, payment, job_create, job_complete, reminder.
 IMPORTANT: Extract quantity and unit accurately. Example: 'sold rice 5 kg' = quantity:5, unit:'kg', productName:'rice'`;
 
-      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userMessage: query, systemPrompt }) });
+      const response = await fetch("/api/chat", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ userMessage: query, systemPrompt }) 
+      });
       const data = await response.json();
       const jsonMatch = data.reply?.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         handleTransactionResult(JSON.parse(jsonMatch[0]));
       } else {
-        finalizeTransaction({ spokenResponse: language === "hi-IN" ? "बिक्री दर्ज हो गई" : "Sale recorded", productName: query, price: 0, quantity: 1, intent: "sale" });
+        const qtyMatch = query.match(/(\d+(\.\d+)?)/);
+        const localQty = qtyMatch ? parseFloat(qtyMatch[1]) : 1;
+        finalizeTransaction({ 
+          spokenResponse: language === "hi-IN" ? "बिक्री दर्ज हो गई" : "Sale recorded", 
+          productName: query, 
+          price: 0, 
+          quantity: localQty, 
+          intent: "sale" 
+        });
       }
     } catch (err) {
       speak(language === "hi-IN" ? "गड़बड़ हो गई, फिर कोशिश करें" : "Something went wrong, try again");
@@ -146,7 +170,10 @@ IMPORTANT: Extract quantity and unit accurately. Example: 'sold rice 5 kg' = qua
     const interval = setInterval(() => {
       timeLeft -= 1;
       setAutoConfirmTimer(timeLeft);
-      if (timeLeft <= 0) { clearInterval(interval); confirmTransaction(txn); }
+      if (timeLeft <= 0) { 
+        clearInterval(interval); 
+        confirmTransaction(txn); 
+      }
     }, 1000);
     (window as any)._pendingInterval = interval;
   };
