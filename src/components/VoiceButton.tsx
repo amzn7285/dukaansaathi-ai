@@ -225,7 +225,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
         disabled={isProcessing} 
         className={cn(
           "rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(56,189,248,0.4)] transition-all active:scale-90 border-4 border-white", 
-          compact ? "h-16 w-16" : "h-24 w-24",
+          compact ? "h-14 w-14" : "h-24 w-24",
           isListening ? "bg-red-500 animate-pulse" : "bg-[#38BDF8]", 
           isProcessing && "bg-slate-400"
         )}
@@ -233,7 +233,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
         {isProcessing ? (
           <Loader2 className="text-white animate-spin" size={compact ? 24 : 40} />
         ) : (
-          <Mic className="text-white" size={compact ? 28 : 40} />
+          <Mic className="text-white" size={compact ? 26 : 40} />
         )}
       </button>
     </div>
