@@ -336,15 +336,15 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-44 pt-4">
+      <main className="flex-1 overflow-y-auto pb-48 pt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-          <TabsContent value="dukaan" className="m-0 p-4">
+          <TabsContent value="dukaan" className="m-0 p-4 pb-12">
             <DukaanTab role={role} privateMode={privateMode} language={language} sales={sales} expenses={expenses} profile={profile} totalOutstanding={totalOutstanding} onGenerateSummary={handleDailySummary} isGeneratingSummary={isGeneratingSummary} />
           </TabsContent>
-          <TabsContent value="stock" className="m-0 p-4">
+          <TabsContent value="stock" className="m-0 p-4 pb-12">
             <StockTab role={role} language={language} stock={stock} onAddCategory={(cat) => setStock([...stock, cat])} sales={sales} profile={profile} />
           </TabsContent>
-          <TabsContent value="activity" className="m-0 p-4">
+          <TabsContent value="activity" className="m-0 p-4 pb-12">
             <OrdersTab 
               language={language} 
               isService={bizInfo.isService} 
@@ -355,10 +355,10 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
           </TabsContent>
           {!isHelper && (
             <>
-              <TabsContent value="khata" className="m-0 p-4">
+              <TabsContent value="khata" className="m-0 p-4 pb-12">
                 <CreditKhataTab language={language} customers={creditKhata} onUpdateCustomers={(k) => { setCreditKhata(k); localStorage.setItem(CREDIT_KHATA_KEY, JSON.stringify(k)); }} profile={profile} sales={sales} jobs={jobs} />
               </TabsContent>
-              <TabsContent value="report" className="m-0 p-4">
+              <TabsContent value="report" className="m-0 p-4 pb-12">
                 <ReportTab 
                   role={role} 
                   privateMode={privateMode} 
@@ -370,7 +370,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
                   onUpdateReminders={(updated) => { setReminders(updated); localStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(updated)); }}
                 />
               </TabsContent>
-              <TabsContent value="settings" className="m-0 p-4">
+              <TabsContent value="settings" className="m-0 p-4 pb-12">
                 <SettingsTab language={language} profile={profile} onUpdateProfile={(p) => setProfile(p)} />
               </TabsContent>
             </>
@@ -398,7 +398,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
           <NavBtn icon={<Home size={26} />} label={texts.dukaan} active={activeTab === 'dukaan'} onClick={() => setActiveTab('dukaan')} />
           <NavBtn icon={<Package size={26} />} label={texts.stock} active={activeTab === 'stock'} onClick={() => setActiveTab('stock')} badge={redItemsCount > 0 ? redItemsCount : undefined} />
           
-          <div className="relative -top-10 flex flex-col items-center">
+          <div className="relative flex flex-col items-center">
             <VoiceButton role={role} language={language} privateMode={privateMode} onTransactionSuccess={handleTransaction} businessType={profile?.businessType} stock={stock} khata={creditKhata} compact />
           </div>
 

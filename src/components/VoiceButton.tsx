@@ -6,6 +6,17 @@ import { cn } from "@/lib/utils";
 
 const MAPPINGS_KEY = "bolvyaapar_product_mappings";
 
+interface VoiceButtonProps {
+  role: "owner" | "helper";
+  language: "hi-IN" | "en-IN";
+  privateMode: boolean;
+  onTransactionSuccess: (txn: any) => void;
+  businessType?: string;
+  stock?: any[];
+  khata?: any[];
+  compact?: boolean;
+}
+
 export default function VoiceButton({ role, language, privateMode, onTransactionSuccess, businessType = "kirana", stock = [], khata = [], compact }: VoiceButtonProps) {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -204,12 +215,27 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
 
   return (
     <div className="flex flex-col items-center">
-      <button onClick={startListening} disabled={isProcessing} className={cn("h-24 w-24 rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(56,189,248,0.4)] transition-all active:scale-90 border-4 border-white", isListening ? "bg-red-500 animate-pulse" : "bg-[#38BDF8]", isProcessing && "bg-slate-400")}>
-        {isProcessing ? <Loader2 className="text-white animate-spin" size={40} /> : <Mic className="text-white" size={40} />}
+      <button 
+        onClick={startListening} 
+        disabled={isProcessing} 
+        className={cn(
+          "rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(56,189,248,0.4)] transition-all active:scale-90 border-4 border-white", 
+          compact ? "h-16 w-16" : "h-24 w-24",
+          isListening ? "bg-red-500 animate-pulse" : "bg-[#38BDF8]", 
+          isProcessing && "bg-slate-400"
+        )}
+      >
+        {isProcessing ? (
+          <Loader2 className="text-white animate-spin" size={compact ? 24 : 40} />
+        ) : (
+          <Mic className="text-white" size={compact ? 28 : 40} />
+        )}
       </button>
-      <p className="mt-2 text-[11px] font-black text-[#38BDF8] uppercase tracking-tighter">
-        {isListening ? "Listening..." : "Boliye"}
-      </p>
+      {!compact && (
+        <p className="mt-2 text-[11px] font-black text-[#38BDF8] uppercase tracking-tighter">
+          {isListening ? "Listening..." : "Boliye"}
+        </p>
+      )}
     </div>
   );
 }
