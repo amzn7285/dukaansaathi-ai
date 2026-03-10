@@ -101,7 +101,7 @@ export default function ReportTab({ language, privateMode, sales, expenses, prof
   }[language];
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+    <div className="space-y-6 pb-48 animate-in fade-in slide-in-from-bottom-4">
       <div className="px-1">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">{texts.title}</h2>
       </div>

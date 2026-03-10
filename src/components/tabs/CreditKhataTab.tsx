@@ -95,7 +95,7 @@ export default function CreditKhataTab({ language, customers, profile, sales, jo
   }[language];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-48">
       <div className="px-1">
         <h2 className="text-2xl font-black text-[#0D2240]">{texts.title}</h2>
       </div>

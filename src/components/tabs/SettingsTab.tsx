@@ -58,7 +58,7 @@ export default function SettingsTab({ language, profile, onUpdateProfile }: Sett
   }[language];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-48">
       <div className="flex justify-between items-center px-1">
         <h2 className="text-2xl font-black text-slate-900">{texts.title}</h2>
         <button onClick={handleHelp} className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 h-12 rounded-2xl font-black uppercase text-xs border border-blue-100 shadow-sm">
