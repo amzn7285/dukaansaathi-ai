@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -104,7 +103,6 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
     const parsed = parseStockLocally(query);
     setTempResult(parsed);
     
-    // Automatic confirmation after a brief delay
     setTimeout(() => {
       onAddCategory({
         ...parsed,
@@ -119,22 +117,8 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
     }, 1500);
   };
 
-  const confirmAdd = () => {
-    if (!tempResult || isHelper) return;
-    onAddCategory({
-      ...tempResult,
-      id: Date.now(),
-      level: 100,
-      maxQty: tempResult.qty,
-      lowStockLevel: tempResult.qty * 0.2
-    });
-    setTempResult(null);
-    setIsDialogOpen(false);
-    speak(language === 'hi-IN' ? "जोड़ दिया गया है" : "Added successfully");
-  };
-
   const speakStockStatus = (item: any) => {
-    const name = language === 'hi-IN' ? item.hiName : item.name;
+    const name = language === 'hi-IN' ? (item.hiName || item.name) : item.name;
     const qty = item.qty;
     const unit = item.unit;
     const level = item.level;
@@ -166,52 +150,30 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
       return;
     }
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const relevantSales = sales.filter(s => 
-      (s.item.toLowerCase() === item.name.toLowerCase() || s.item.toLowerCase() === (item.hiName || "").toLowerCase()) &&
-      new Date(s.timestamp) >= sevenDaysAgo
-    );
-
-    const totalSold = relevantSales.reduce((acc, curr) => {
-      const qtyStr = curr.qty?.split(' ')[0];
-      return acc + (parseFloat(qtyStr) || 1);
-    }, 0);
-
-    const avgDaily = totalSold / 7;
-    let suggestedQty = Math.ceil(avgDaily * 10);
-    if (suggestedQty === 0) suggestedQty = item.maxQty || 10;
-
-    const term = {
-      tailor: language === 'hi-IN' ? 'कपड़ा (fabric)' : 'fabric',
-      repair: language === 'hi-IN' ? 'पुर्जे (parts)' : 'parts',
-      kirana: language === 'hi-IN' ? 'स्टॉक (stock)' : 'stock',
-      other: language === 'hi-IN' ? 'सामान (items)' : 'stock'
-    }[profile?.businessType as keyof typeof term] || term.other;
-
     const itemName = language === 'hi-IN' ? (item.hiName || item.name) : item.name;
     const shopName = profile?.shopName || "BolVyaapar Shop";
+    const suggestedQty = item.maxQty || 10;
     
     const message = language === 'hi-IN'
-      ? `नमस्ते, मैं ${shopName} से बोल रहा हूँ। हमें ${itemName} के ${suggestedQty} ${item.unit} ${term} की ज़रूरत है। कृपया जल्दी भेज दें। धन्यवाद!`
-      : `Hi, this is ${shopName}. We need a reorder of ${suggestedQty} ${item.unit} of ${itemName} (${term}). Please deliver it soon. Thanks!`;
+      ? `नमस्ते, मैं ${shopName} से बोल रहा हूँ। हमें ${itemName} के ${suggestedQty} ${item.unit} की ज़रूरत है। कृपया जल्दी भेज दें। धन्यवाद!`
+      : `Hi, this is ${shopName}. We need a reorder of ${suggestedQty} ${item.unit} of ${itemName}. Please deliver it soon. Thanks!`;
 
     window.open(`https://wa.me/${profile.supplierPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const texts = {
     "hi-IN": {
-      title: "इन्वेंट्री स्टेटस",
+      title: "स्टॉक की स्थिति",
       addBtn: "नया सामान",
       voiceInstr: "सामान का नाम और मात्रा बोलें",
       example: "जैसे: '10 किलो चावल'",
       confirm: "हाँ, जोड़ो",
       cancel: "हटाओ",
-      processing: "चेक कर रहा हूँ...",
-      critical: "खत्म होने वाला",
-      healthy: "ज्यादा है",
-      orderNow: "📦 ऑर्डर करो"
+      saved: "सहेज लिया गया",
+      critical: "कम है",
+      healthy: "ठीक है",
+      orderNow: "📦 ऑर्डर करें",
+      suno: "सुनो"
     },
     "en-IN": {
       title: "Stock Status",
@@ -220,10 +182,11 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
       example: "e.g. '10kg Rice'",
       confirm: "Yes, Add",
       cancel: "Cancel",
-      processing: "Processing...",
+      saved: "Saved Successfully",
       critical: "Critical",
       healthy: "Healthy",
-      orderNow: "📦 Order Karo"
+      orderNow: "📦 Order Now",
+      suno: "Listen"
     }
   }[language];
 
@@ -255,14 +218,12 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
                         setIsListening(true);
                         recognitionRef.current?.start();
                       }}
-                      disabled={isProcessing}
                       className={cn(
                         "h-32 w-32 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90",
-                        isListening ? "bg-red-500 animate-pulse" : "bg-[#C45000]",
-                        isProcessing && "bg-slate-600"
+                        isListening ? "bg-red-500 animate-pulse" : "bg-[#C45000]"
                       )}
                     >
-                      {isProcessing ? <Loader2 className="animate-spin" size={48} /> : <Mic size={48} />}
+                      <Mic size={48} />
                     </button>
                     <p className="text-white/40 text-sm italic">{texts.example}</p>
                   </>
@@ -271,7 +232,7 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
                     <div className="text-7xl mb-4">{tempResult.emoji}</div>
                     <div className="space-y-2">
                       <p className="text-emerald-400 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                        <CheckCircle2 size={14} /> Saved Automatically
+                        <CheckCircle2 size={14} /> {texts.saved}
                       </p>
                       <h2 className="text-4xl font-black text-white">{language === 'hi-IN' ? tempResult.hiName : tempResult.name}</h2>
                       <p className="text-2xl font-bold text-white/80">{tempResult.qty} {tempResult.unit}</p>
@@ -308,7 +269,7 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
 
                   <div className="space-y-1">
                     <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
-                      {language === 'hi-IN' ? item.hiName : item.name}
+                      {language === 'hi-IN' ? (item.hiName || item.name) : item.name}
                     </h3>
                     <div className={cn(
                       "text-6xl font-black flex items-baseline justify-center gap-2",
@@ -318,12 +279,6 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
                       <span className="text-xl font-bold text-slate-400 uppercase">{item.unit}</span>
                     </div>
                   </div>
-
-                  {!isHelper && item.price > 0 && (
-                    <div className="text-xl font-black text-slate-300">
-                      ₹{item.price}
-                    </div>
-                  )}
 
                   <div className="w-full space-y-4">
                     <Progress 
@@ -348,7 +303,7 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
                       )}
                     >
                       <Volume2 size={32} />
-                      <span className="text-xl font-black uppercase tracking-widest">{language === 'hi-IN' ? 'सुनो' : 'Listen'}</span>
+                      <span className="text-xl font-black uppercase tracking-widest">{texts.suno}</span>
                     </button>
 
                     {isRed && !isHelper && (
@@ -370,4 +325,3 @@ export default function StockTab({ role, language, stock, onAddCategory, sales, 
     </div>
   );
 }
-

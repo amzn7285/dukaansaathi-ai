@@ -34,7 +34,7 @@ export default function CreditKhataTab({ language, customers, onUpdateCustomers,
     const shopName = profile?.shopName || "BolVyaapar AI Shop";
     const systemPrompt = `Create a friendly 1-sentence WhatsApp reminder for a customer who owes money. 
     Customer: ${customer.name}. Amount: ₹${customer.balance}. Shop: ${shopName}. 
-    Language: ${language === 'hi-IN' ? 'Hindi' : 'English'}. NO Net Profit details.`;
+    Language: ${language === 'hi-IN' ? 'Hindi' : 'English'}.`;
 
     try {
       const response = await fetch("/api/chat", {
@@ -78,6 +78,9 @@ export default function CreditKhataTab({ language, customers, onUpdateCustomers,
   const getDaysSince = (dateString: string | null) => {
     if (!dateString) return "---";
     const days = differenceInDays(new Date(), new Date(dateString));
+    if (language === 'hi-IN') {
+        return days === 0 ? "आज" : `${days} दिन पहले`;
+    }
     return days === 0 ? "Today" : `${days} days ago`;
   };
 
@@ -90,8 +93,8 @@ export default function CreditKhataTab({ language, customers, onUpdateCustomers,
   };
 
   const texts = {
-    "hi-IN": { title: "क्रेडिट खाता (Udhar)", search: "नाम से खोजें", empty: "कोई ग्राहक नहीं मिला", history: "हिसाब", balance: "बाकी", remind: "रिमाइंडर", camera: "फोटो भेजें", lastItems: "पिछला सामान", lastPay: "पिछली जमा", advance: "एडवांस" },
-    "en-IN": { title: "Credit Khata", search: "Search by name", empty: "No customers found", history: "History", balance: "Due", remind: "Remind", camera: "Photo Share", lastItems: "Last Bought", lastPay: "Last Paid", advance: "Advance" }
+    "hi-IN": { title: "क्रेडिट खाता (उधार)", search: "नाम से खोजें", empty: "कोई ग्राहक नहीं मिला", history: "हिसाब", balance: "बाकी", remind: "रिमाइंडर", camera: "फोटो भेजें", lastItems: "पिछला सामान", lastPay: "पिछली जमा", advance: "एडवांस", settled: "हिसाब साफ़", totalDue: "कुल बकाया" },
+    "en-IN": { title: "Credit Khata", search: "Search by name", empty: "No customers found", history: "History", balance: "Due", remind: "Remind", camera: "Photo Share", lastItems: "Last Bought", lastPay: "Last Paid", advance: "Advance", settled: "Settled", totalDue: "Total Due" }
   }[language];
 
   return (
@@ -146,7 +149,7 @@ export default function CreditKhataTab({ language, customers, onUpdateCustomers,
                         "text-[10px] font-black uppercase tracking-widest mb-1",
                         isFullyPaid ? "text-emerald-400" : isAdvance ? "text-blue-400" : "text-red-400"
                       )}>
-                        {isFullyPaid ? 'Settled' : isAdvance ? texts.advance : texts.balance}
+                        {isFullyPaid ? texts.settled : isAdvance ? texts.advance : texts.balance}
                       </p>
                       <p className={cn(
                         "text-4xl font-black",
@@ -209,7 +212,7 @@ export default function CreditKhataTab({ language, customers, onUpdateCustomers,
                   <p className="text-white/40 text-xs font-black uppercase tracking-widest">{selectedCustomer.phone}</p>
                 </div>
                 <div className="mt-8 flex items-baseline gap-2">
-                  <span className="text-white/40 text-sm font-black uppercase">Total Due</span>
+                  <span className="text-white/40 text-sm font-black uppercase">{texts.totalDue}</span>
                   <span className="text-5xl font-black text-[#FFB300]">₹{selectedCustomer.balance.toLocaleString()}</span>
                 </div>
               </div>
@@ -218,7 +221,7 @@ export default function CreditKhataTab({ language, customers, onUpdateCustomers,
                 {selectedCustomer.history?.length === 0 ? (
                   <div className="text-center py-20 opacity-20 flex flex-col items-center">
                     <History size={48} className="mb-2" />
-                    <p className="font-black uppercase text-sm tracking-widest">No History Yet</p>
+                    <p className="font-black uppercase text-sm tracking-widest">{language === 'hi-IN' ? 'कोई इतिहास नहीं' : 'No History Yet'}</p>
                   </div>
                 ) : (
                   selectedCustomer.history.map((entry: any) => (

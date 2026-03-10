@@ -34,9 +34,49 @@ export default function OrdersTab({ language, isService, jobs, sales, onUpdateJo
   };
 
   const texts = {
-    "hi-IN": { title: isService ? "ऑर्डर और काम" : "बिक्री का इतिहास", empty: "कोई डेटा नहीं मिला", statusReady: "तैयार", statusDelivered: "दे दिया", statusReceived: "आया", notify: "बताओ" },
-    "en-IN": { title: isService ? "Orders & Jobs" : "Sales History", empty: "No records found", statusReady: "Ready", statusDelivered: "Delivered", statusReceived: "Received", notify: "Notify" }
+    "hi-IN": { 
+      title: isService ? "ऑर्डर और काम" : "बिक्री का इतिहास", 
+      empty: "कोई रिकॉर्ड नहीं मिला", 
+      statusReady: "तैयार", 
+      statusDelivered: "दे दिया", 
+      statusReceived: "आया", 
+      notify: "बताओ",
+      start: "शुरू करें",
+      markReady: "तैयार मार्क करें",
+      deliver: "दे दिया",
+      received: "प्राप्त हुआ",
+      advance: "एडवांस",
+      balance: "बाकी"
+    },
+    "en-IN": { 
+      title: isService ? "Orders & Jobs" : "Sales History", 
+      empty: "No records found", 
+      statusReady: "Ready", 
+      statusDelivered: "Delivered", 
+      statusReceived: "Received", 
+      notify: "Notify",
+      start: "Start Work",
+      markReady: "Mark Ready",
+      deliver: "Deliver & Clear",
+      received: "Received",
+      advance: "Advance",
+      balance: "Balance"
+    }
   }[language];
+
+  const statusMap: Record<string, string> = language === 'hi-IN' ? {
+    'All': 'सब',
+    'Received': 'प्राप्त',
+    'In Progress': 'चालू',
+    'Ready': 'तैयार',
+    'Delivered': 'दिया गया'
+  } : {
+    'All': 'All',
+    'Received': 'Received',
+    'In Progress': 'In Progress',
+    'Ready': 'Ready',
+    'Delivered': 'Delivered'
+  };
 
   if (!isService) {
     return (
@@ -88,7 +128,7 @@ export default function OrdersTab({ language, isService, jobs, sales, onUpdateJo
               filter === s ? "bg-[#0D2240] text-white" : "bg-white border border-slate-100 text-slate-400"
             )}
           >
-            {s}
+            {statusMap[s]}
           </button>
         ))}
       </div>
@@ -121,7 +161,7 @@ export default function OrdersTab({ language, isService, jobs, sales, onUpdateJo
                         "text-[9px] font-black uppercase tracking-widest rounded-lg",
                         job.status === 'Ready' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-500 border-slate-100"
                       )}>
-                        {job.status}
+                        {statusMap[job.status]}
                       </Badge>
                       <p className="text-2xl font-black text-slate-800 mt-2">₹{job.price}</p>
                     </div>
@@ -129,15 +169,15 @@ export default function OrdersTab({ language, isService, jobs, sales, onUpdateJo
 
                   <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-50">
                     <div className="flex flex-col gap-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Received</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase">{texts.received}</p>
                       <p className="text-xs font-bold text-slate-700">{format(new Date(job.timestamp), 'dd MMM')}</p>
                     </div>
                     <div className="flex flex-col gap-1 text-center">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Advance</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase">{texts.advance}</p>
                       <p className="text-xs font-bold text-emerald-600">₹{job.advance || 0}</p>
                     </div>
                     <div className="flex flex-col gap-1 text-right">
-                      <p className="text-[9px] font-black text-red-400 uppercase">Balance</p>
+                      <p className="text-[9px] font-black text-red-400 uppercase">{texts.balance}</p>
                       <p className="text-xs font-bold text-red-600">₹{balance}</p>
                     </div>
                   </div>
@@ -145,12 +185,12 @@ export default function OrdersTab({ language, isService, jobs, sales, onUpdateJo
                   <div className="flex gap-3 pt-2">
                     {job.status === 'Received' && (
                       <Button onClick={() => handleUpdateStatus(job.id, 'In Progress')} className="flex-1 h-14 rounded-2xl bg-[#0D2240] text-white font-black text-xs uppercase">
-                        Start Work
+                        {texts.start}
                       </Button>
                     )}
                     {job.status === 'In Progress' && (
                       <Button onClick={() => handleUpdateStatus(job.id, 'Ready')} className="flex-1 h-14 rounded-2xl bg-emerald-500 text-white font-black text-xs uppercase">
-                        Mark Ready
+                        {texts.markReady}
                       </Button>
                     )}
                     {job.status === 'Ready' && (
@@ -159,13 +199,13 @@ export default function OrdersTab({ language, isService, jobs, sales, onUpdateJo
                           <MessageCircle size={18} /> {texts.notify}
                         </Button>
                         <Button onClick={() => handleUpdateStatus(job.id, 'Delivered')} className="flex-1 h-14 rounded-2xl bg-emerald-600 text-white font-black text-xs uppercase">
-                          Deliver & Clear
+                          {texts.deliver}
                         </Button>
                       </>
                     )}
                     {job.status === 'Delivered' && (
                       <div className="w-full h-14 flex items-center justify-center gap-2 text-slate-300 font-black text-xs uppercase">
-                        <CheckCircle2 size={20} /> Delivered
+                        <CheckCircle2 size={20} /> {statusMap['Delivered']}
                       </div>
                     )}
                   </div>

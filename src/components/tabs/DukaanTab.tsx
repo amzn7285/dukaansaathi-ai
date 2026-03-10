@@ -28,8 +28,8 @@ export default function DukaanTab({ role, privateMode, language, sales, expenses
   const count = todaySales.length;
 
   const texts = {
-    "hi-IN": { todaySales: "आज की बिक्री", todayExp: "आज के खर्चे", recent: "हाल की बिक्री", outstanding: "उधार बाकी", summaryTitle: "आज का हिसाब", summarySub: "AI से रिपोर्ट सुनें" },
-    "en-IN": { todaySales: "Today's Sales", todayExp: "Today's Expenses", recent: "Recent Activity", outstanding: "Outstanding", summaryTitle: "Today's Summary", summarySub: "Listen to AI Report" }
+    "hi-IN": { todaySales: "आज की बिक्री", todayExp: "आज के खर्चे", recent: "हाल की बिक्री", outstanding: "उधार बाकी", summaryTitle: "आज का हिसाब", summarySub: "AI से रिपोर्ट सुनें", txns: "लेन-देन" },
+    "en-IN": { todaySales: "Today's Sales", todayExp: "Today's Expenses", recent: "Recent Activity", outstanding: "Outstanding", summaryTitle: "Today's Summary", summarySub: "Listen to AI Report", txns: "txns" }
   }[language];
 
   const getBizIcon = () => {
@@ -70,7 +70,7 @@ export default function DukaanTab({ role, privateMode, language, sales, expenses
             </span>
           </div>
           <div className="mt-2 inline-flex items-center gap-2 bg-white/5 px-2 py-0.5 rounded-full w-fit">
-            <p className="text-white/60 font-black text-[10px]">{count} txns</p>
+            <p className="text-white/60 font-black text-[10px]">{count} {texts.txns}</p>
           </div>
         </Card>
 

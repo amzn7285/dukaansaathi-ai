@@ -69,7 +69,7 @@ export default function VoiceButton({ role, language, privateMode, onTransaction
     setIsProcessing(true);
 
     if (!navigator.onLine) {
-      finalizeTransaction({ spokenResponse: language === "hi-IN" ? "ऑफलाइन सेव" : "Saved Offline", productName: query, price: 0, intent: 'sale' });
+      finalizeTransaction({ spokenResponse: language === "hi-IN" ? "ऑफलाइन सहेजा गया" : "Saved Offline", productName: query, price: 0, intent: 'sale' });
       setIsProcessing(false);
       return;
     }
@@ -95,7 +95,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
       const jsonMatch = data.reply?.match(/\{[\s\S]*\}/);
       if (jsonMatch) handleTransactionResult(JSON.parse(jsonMatch[0]));
     } catch (err) {
-      speak("Error");
+      speak(language === 'hi-IN' ? "गड़बड़ हो गई" : "Something went wrong");
     } finally {
       setIsProcessing(false);
     }
@@ -103,7 +103,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
 
   const handleTransactionResult = (txn: any) => {
     if (isHelper && !['sale'].includes(txn.intent)) {
-      speak(language === "hi-IN" ? "सिर्फ सेल लिखें।" : "Sales only.");
+      speak(language === "hi-IN" ? "सिर्फ बिक्री की अनुमति है।" : "Sales only allowed.");
       return;
     }
     
@@ -125,7 +125,7 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
   };
 
   const handleClarificationResponse = (query: string) => {
-    const isYes = query.toLowerCase().includes("haan") || query.toLowerCase().includes("yes");
+    const isYes = query.toLowerCase().includes("haan") || query.toLowerCase().includes("yes") || query.toLowerCase().includes("हाँ");
     if (isYes && pendingTxn && suggestedCategory) {
       const key = pendingTxn.productName?.toLowerCase();
       const current = learnedMappings[key] || { category: suggestedCategory, count: 0 };
@@ -158,6 +158,11 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
     setAutoConfirmTimer(null);
   };
 
+  const texts = {
+    "hi-IN": { wrong: "गलत", right: "सही है", auto: "ऑटो कन्फर्म", ready: "तैयार", order: "नया ऑर्डर", remind: "रिमाइंडर", owner: "मालिक", bal: "बाकी", adv: "एडवांस" },
+    "en-IN": { wrong: "Galat", right: "Sahi Hai", auto: "Auto Confirm", ready: "Ready", order: "New Order", remind: "Reminder", owner: "Owner", bal: "Balance", adv: "Advance" }
+  }[language];
+
   if (pendingTxn && !isAskingClarification) {
     const isJob = pendingTxn.intent === 'job_create';
     const isJobComplete = pendingTxn.intent === 'job_complete';
@@ -174,12 +179,12 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
               </div>
               <div>
                 <h2 className="text-3xl font-black text-[#0D2240] uppercase tracking-tight">
-                  {isJobComplete ? pendingTxn.customerName : isReminder ? (pendingTxn.customerName || 'Owner') : (pendingTxn.productName || pendingTxn.customerName)}
+                  {isJobComplete ? pendingTxn.customerName : isReminder ? (pendingTxn.customerName || texts.owner) : (pendingTxn.productName || pendingTxn.customerName)}
                 </h2>
                 <p className="text-xl font-black text-slate-400 mt-2">
-                  {isJobComplete ? (language === 'hi-IN' ? 'काम हो गया' : 'Ready') : 
-                   isJob ? (language === 'hi-IN' ? 'नया ऑर्डर' : 'New Order') : 
-                   isReminder ? (language === 'hi-IN' ? 'याद दिलाना है' : 'Reminder') :
+                  {isJobComplete ? texts.ready : 
+                   isJob ? texts.order : 
+                   isReminder ? texts.remind :
                    `${pendingTxn.quantity || ''} ${pendingTxn.unit || ''}`}
                 </p>
                 {isReminder && <p className="text-sm font-bold text-slate-500 mt-2 italic">"{pendingTxn.message}"</p>}
@@ -189,24 +194,24 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
               <div className="space-y-2 text-center">
                 {isJob && isAdvance && (
                   <p className="text-emerald-600 font-bold uppercase text-[10px] tracking-widest">
-                    Advance: ₹{pendingTxn.advance}
+                    {texts.adv}: ₹{pendingTxn.advance}
                   </p>
                 )}
                 <div className="text-5xl font-black text-secondary">
                   ₹{isJob ? (pendingTxn.price - (pendingTxn.advance || 0)) : pendingTxn.price}
-                  {isJob && <span className="text-sm ml-2 text-slate-400 uppercase">Balance</span>}
+                  {isJob && <span className="text-sm ml-2 text-slate-400 uppercase">{texts.bal}</span>}
                 </div>
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
               <button onClick={() => setPendingTxn(null)} className="h-20 rounded-[28px] bg-red-50 text-red-600 font-black text-lg uppercase border-2 border-red-100 flex flex-col items-center justify-center">
-                <span>Galat</span>
+                <span>{texts.wrong}</span>
               </button>
               <button onClick={() => confirmTransaction(pendingTxn)} className="h-20 rounded-[28px] bg-secondary text-white font-black text-lg uppercase shadow-xl flex flex-col items-center justify-center">
-                <span>Sahi Hai</span>
+                <span>{texts.right}</span>
               </button>
             </div>
-            <div className="text-center text-[11px] font-black text-slate-300 uppercase tracking-widest">Auto Confirm in {autoConfirmTimer}s</div>
+            <div className="text-center text-[11px] font-black text-slate-300 uppercase tracking-widest">{texts.auto} in {autoConfirmTimer}s</div>
           </div>
         </div>
       </div>
@@ -231,11 +236,6 @@ Return ONLY JSON: {"intent": "...", "spokenResponse": "...", "productName": "...
           <Mic className="text-white" size={compact ? 28 : 40} />
         )}
       </button>
-      {!compact && (
-        <p className="mt-2 text-[11px] font-black text-[#38BDF8] uppercase tracking-tighter">
-          {isListening ? "Listening..." : "Boliye"}
-        </p>
-      )}
     </div>
   );
 }

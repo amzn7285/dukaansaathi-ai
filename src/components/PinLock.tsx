@@ -41,8 +41,8 @@ export default function PinLock({ onAuth, language, onLanguageChange }: PinLockP
 
   const texts = {
     "hi-IN": {
-      tagline: "Bolkar Chalao AI Se Karobaar — बोलकर चलाओ AI से कारोबार",
-      select: "भाषा चुनें",
+      tagline: "बोलकर चलाओ AI से कारोबार — बोलकर चलाओ AI से कारोबार",
+      select: "भाषा चुनें (Select Language)",
       enter: "PIN दर्ज करें",
       error: "गलत PIN",
     },

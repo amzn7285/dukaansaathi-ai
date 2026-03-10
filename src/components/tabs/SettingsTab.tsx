@@ -53,8 +53,8 @@ export default function SettingsTab({ language, profile, onUpdateProfile }: Sett
   };
 
   const texts = {
-    "hi-IN": { title: "सेटिंग्स", help: "मदद सुनें", save: "अपडेट करें", shop: "दुकान का नाम", owner: "मालिक का नाम", ownerWA: "मालिक WhatsApp", supplierWA: "सप्लायर WhatsApp" },
-    "en-IN": { title: "Settings", help: "Listen to Help", save: "Update Profile", shop: "Shop Name", owner: "Owner Name", ownerWA: "Owner WhatsApp", supplierWA: "Supplier WhatsApp" }
+    "hi-IN": { title: "सेटिंग्स", help: "मदद सुनें", save: "अपडेट करें", shop: "दुकान का नाम", owner: "मालिक का नाम", ownerWA: "मालिक WhatsApp", supplierWA: "सप्लायर WhatsApp", biz: "व्यापार" },
+    "en-IN": { title: "Settings", help: "Listen to Help", save: "Update Profile", shop: "Shop Name", owner: "Owner Name", ownerWA: "Owner WhatsApp", supplierWA: "Supplier WhatsApp", biz: "Business" }
   }[language];
 
   return (
@@ -76,7 +76,7 @@ export default function SettingsTab({ language, profile, onUpdateProfile }: Sett
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2"><ShoppingBasket size={14} /> Business</Label>
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2"><ShoppingBasket size={14} /> {texts.biz}</Label>
                 <Select value={formData.businessType} onValueChange={(val) => setFormData({...formData, businessType: val})}>
                   <SelectTrigger className="bg-slate-50 h-14 rounded-2xl text-lg font-bold">
                     <SelectValue />

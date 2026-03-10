@@ -137,7 +137,9 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(updatedJobs));
       
       const shopName = profile?.shopName || "BolVyaapar Shop";
-      const msg = `नमस्ते ${details.customerName}, आपका काम तैयार है — आ जाइये। धन्यवाद! - ${shopName}`;
+      const msg = language === 'hi-IN' 
+        ? `नमस्ते ${details.customerName}, आपका काम तैयार है — आ जाइये। धन्यवाद! - ${shopName}`
+        : `Hi ${details.customerName}, your work is ready - please visit us. Thanks! - ${shopName}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
       return;
     }
@@ -156,7 +158,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
         price: total,
         advance: advance,
         status: 'Received',
-        dueDate: details.dueDate || null
+        dueDate: details.date || details.dueDate || null
       };
       const updatedJobs = [newJob, ...jobs];
       setJobs(updatedJobs);
@@ -183,7 +185,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       return;
     }
 
-    if (details.isExpense) {
+    if (details.isExpense || details.intent === 'expense') {
       const newExpense = { id: Date.now(), timestamp, category: details.productName || (language === 'hi-IN' ? 'खर्चा' : 'Expense'), amount: details.price || 0 };
       const updatedExpenses = [newExpense, ...expenses];
       setExpenses(updatedExpenses);
@@ -219,18 +221,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
       });
       setCreditKhata(updatedKhata);
       localStorage.setItem(CREDIT_KHATA_KEY, JSON.stringify(updatedKhata));
-
-      const bizInfo = BUSINESS_TYPES.find(b => b.id === profile?.businessType);
-      if (bizInfo?.isService) {
-        const updatedJobs = jobs.map(j => {
-          if (j.customerName?.toLowerCase() === details.customerName?.toLowerCase() && j.status === 'Ready') {
-            return { ...j, status: 'Delivered' };
-          }
-          return j;
-        });
-        setJobs(updatedJobs);
-        localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(updatedJobs));
-      }
       return;
     }
 
@@ -270,13 +260,16 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
     try {
       const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userMessage: "Summary", systemPrompt }) });
       const data = await response.json();
-      const text = data.reply || "";
+      const text = data.reply || (language === 'hi-IN' ? 'आज का हिसाब तैयार है।' : 'Today\'s summary is ready.');
       
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = language;
       window.speechSynthesis.speak(utterance);
 
-      const shareMsg = `📊 *आज का हिसाब: ${profile?.shopName}*\n✅ ${count} बिक्री\n🔥 खास: ${bestSeller}\n_BolVyaapar AI_`;
+      const shareMsg = language === 'hi-IN' 
+        ? `📊 *आज का हिसाब: ${profile?.shopName}*\n✅ ${count} बिक्री\n🔥 खास: ${bestSeller}\n_बोलव्यापार AI (BolVyaapar AI)_`
+        : `📊 *Today's Summary: ${profile?.shopName}*\n✅ ${count} Sales\n🔥 Top Item: ${bestSeller}\n_BolVyaapar AI_`;
+      
       setSummaryModal({ show: true, text, whatsappUrl: `https://wa.me/${profile?.ownerPhone}?text=${encodeURIComponent(shareMsg)}` });
     } catch (err) {
       setSummaryModal({ show: true, text: "Offline report ready.", whatsappUrl: `https://wa.me/${profile?.ownerPhone}?text=Summary` });
@@ -290,8 +283,8 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
   const bizInfo = BUSINESS_TYPES.find(b => b.id === profile?.businessType) || BUSINESS_TYPES[0];
 
   const texts = {
-    "hi-IN": { dukaan: "दुकान", stock: "स्टॉक", khata: "खाता", report: "रिपोर्ट", activity: bizInfo.isService ? "ऑर्डर" : "हिसाब", share: "WhatsApp पर भेजें", tagline: "Bolkar Chalao AI Se Karobaar — बोलकर चलाओ AI से कारोबार" },
-    "en-IN": { dukaan: "Dukaan", stock: "Stock", khata: "Khata", report: "Report", activity: bizInfo.isService ? "Orders" : "History", share: "Share on WhatsApp", tagline: "Bolkar Chalao AI Se Karobaar — बोलकर चलाओ AI से कारोबार" }
+    "hi-IN": { dukaan: "दुकान", stock: "स्टॉक", boliye: "बोलिए", khata: "खाता", report: "रिपोर्ट", activity: "इतिहास", share: "WhatsApp पर भेजें", tagline: "बोलकर चलाओ AI से कारोबार" },
+    "en-IN": { dukaan: "Dukaan", stock: "Stock", boliye: "Boliye", khata: "Khata", report: "Report", activity: "History", share: "Share on WhatsApp", tagline: "Bolkar Chalao AI Se Karobaar" }
   }[language];
 
   return (
@@ -382,7 +375,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
         <DialogContent className="max-w-[90vw] rounded-[40px] p-0 border-none bg-white overflow-hidden shadow-2xl">
           <div className="bg-[#0D2240] p-8 text-white relative">
             <button onClick={() => setSummaryModal(null)} className="absolute right-4 top-4 text-white/40"><X size={24} /></button>
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-4">{language === 'hi-IN' ? 'आज का हिसाब' : "Summary"}</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-4">{language === 'hi-IN' ? 'आज का हिसाब' : "Today's Summary"}</h2>
             <p className="text-white/80 leading-relaxed font-medium text-lg italic">{summaryModal?.text}</p>
           </div>
           <div className="p-8 bg-slate-50">
@@ -400,6 +393,7 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
           
           <div className="relative flex flex-col items-center">
             <VoiceButton role={role} language={language} privateMode={privateMode} onTransactionSuccess={handleTransaction} businessType={profile?.businessType} stock={stock} khata={creditKhata} compact />
+            <span className="text-[11px] font-black uppercase tracking-tight text-[#38BDF8] mt-1">{texts.boliye}</span>
           </div>
 
           <NavBtn icon={<ClipboardList size={26} />} label={texts.activity} active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} />
@@ -407,7 +401,6 @@ export default function Dashboard({ role, language, onLogout }: DashboardProps) 
           {!isHelper && (
             <NavBtn icon={<BarChart3 size={26} />} label={texts.report} active={activeTab === 'report'} onClick={() => setActiveTab('report')} />
           )}
-          {isHelper && <NavBtn icon={<BookOpen size={26} />} label={texts.khata} active={false} onClick={() => {}} className="opacity-0 pointer-events-none" />}
         </div>
       </nav>
     </div>
