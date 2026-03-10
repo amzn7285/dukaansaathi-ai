@@ -120,8 +120,8 @@ export default function Dashboard({ role, language, onLogout, openStockOnLoad = 
     const timestamp = new Date().toISOString();
 
     if (details.intent === 'reminder') {
-      const newReminder = { id: Date.now(), timestamp, customerName: details.customerName || null, message: details.message || details.productName, date: details.date || timestamp, completed: false };
       setReminders(prev => {
+        const newReminder = { id: Date.now(), timestamp, customerName: details.customerName || null, message: details.message || details.productName, date: details.date || timestamp, completed: false };
         const updated = [newReminder, ...prev];
         localStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(updated));
         return updated;
@@ -146,11 +146,13 @@ export default function Dashboard({ role, language, onLogout, openStockOnLoad = 
       const advance = details.advance || 0;
       const balance = Math.max(0, total - advance);
       const newJob = { id: Date.now(), timestamp, customerName: details.customerName, item: details.productName, problem: details.description || details.productName, price: total, advance, status: 'Received', dueDate: details.date || null };
+      
       setJobs(prev => {
         const updated = [newJob, ...prev];
         localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(updated));
         return updated;
       });
+
       if (balance > 0 || advance > 0) {
         setCreditKhata(prev => {
           let exists = false;
@@ -174,8 +176,8 @@ export default function Dashboard({ role, language, onLogout, openStockOnLoad = 
     }
 
     if (details.isExpense || details.intent === 'expense') {
-      const newExpense = { id: Date.now(), timestamp, category: details.productName || (language === 'hi-IN' ? 'खर्चा' : 'Expense'), amount: details.price || 0 };
       setExpenses(prev => {
+        const newExpense = { id: Date.now(), timestamp, category: details.productName || (language === 'hi-IN' ? 'खर्चा' : 'Expense'), amount: details.price || 0 };
         const updated = [newExpense, ...prev];
         localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(updated));
         return updated;
@@ -221,6 +223,7 @@ export default function Dashboard({ role, language, onLogout, openStockOnLoad = 
 
     // Default: SALE — save and reduce stock
     const newSale = { id: Date.now(), timestamp, item: details.productName || "Unknown Item", qty: details.quantity ? `${details.quantity} ${details.unit || ''}` : "---", customer: details.customerName || (language === 'hi-IN' ? 'ग्राहक' : 'Customer'), amount: details.price || 0 };
+    
     setSales(prev => {
       const updated = [newSale, ...prev];
       localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(updated));
